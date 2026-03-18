@@ -29,6 +29,11 @@ public enum ErrorCode {
     BATCH_NOT_FOUND(HttpStatus.NOT_FOUND, "Lô thuốc không tồn tại"),
     BATCH_ALREADY_EXPORTED(HttpStatus.BAD_REQUEST, "Lô thuốc đã được xuất, không thể thực hiện thao tác này"),
 
+    //prescription
+    PRESCRIPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Đơn thuốc không tồn tại"),
+    PRESCRIPTION_INVALID_STATUS(HttpStatus.BAD_REQUEST, "Trạng thái đơn thuốc không hợp lệ"),
+    MEDICINE_NOT_ENOUGH(HttpStatus.BAD_REQUEST, "Số lượng thuốc trong kho không đủ"),
+
     // Student
     STUDENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Sinh viên không tồn tại"),
 
