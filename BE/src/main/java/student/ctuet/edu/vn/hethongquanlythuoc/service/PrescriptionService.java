@@ -248,6 +248,20 @@ public class PrescriptionService {
                 return mapToResponse(saved);
         }
 
+        // ========================= XÓA ĐƠN =========================
+        @Transactional
+        public void deletePrescription(String prescriptionCode) {
+
+                Prescription prescription = prescriptionRepository.findById(prescriptionCode)
+                                .orElseThrow(() -> new AppException(ErrorCode.PRESCRIPTION_NOT_FOUND));
+
+                if (!"Chờ thuốc".equals(prescription.getStatus().getStatusName())) {
+                        throw new AppException(ErrorCode.PRESCRIPTION_INVALID_STATUS);
+                }
+
+                prescriptionRepository.delete(prescription);
+        }
+
         // ==========================LẤY TÀI KHOẢN HIỆN TẠI===========================
 
         private Account getCurrentAccount() {
