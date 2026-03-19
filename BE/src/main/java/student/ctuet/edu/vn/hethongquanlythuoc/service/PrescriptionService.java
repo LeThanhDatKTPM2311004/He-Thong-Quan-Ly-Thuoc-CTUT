@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +33,7 @@ import student.ctuet.edu.vn.hethongquanlythuoc.repository.PrescriptionDetailRepo
 import student.ctuet.edu.vn.hethongquanlythuoc.repository.PrescriptionRepository;
 import student.ctuet.edu.vn.hethongquanlythuoc.repository.PrescriptionStatusRepository;
 import student.ctuet.edu.vn.hethongquanlythuoc.repository.StudentRepository;
+import student.ctuet.edu.vn.hethongquanlythuoc.specification.PrescriptionSpecification;
 
 @Service
 public class PrescriptionService {
@@ -240,7 +244,7 @@ public class PrescriptionService {
 
                         newDetails.add(detail);
                 }
-                
+
                 prescription.getDetails().clear();
                 prescription.getDetails().addAll(newDetails);
 
@@ -268,6 +272,15 @@ public class PrescriptionService {
                 Prescription prescription = prescriptionRepository.findById(prescriptionCode)
                                 .orElseThrow(() -> new AppException(ErrorCode.PRESCRIPTION_NOT_FOUND));
                 return mapToResponse(prescription);
+        }
+
+        // ========================= GET ALL =========================
+        public Page<PrescriptionResponse> getPrescriptions(String keyword, String status, Pageable pageable) {
+                Specification<Prescription> spec = Specification.allOf(
+                                PrescriptionSpecification.hasKeyword(keyword),
+                                PrescriptionSpecification.hasStatus(status));
+                return prescriptionRepository.findAll(spec, pageable)
+                                .map(this::mapToResponse);
         }
 
         // ==========================LẤY TÀI KHOẢN HIỆN TẠI===========================
