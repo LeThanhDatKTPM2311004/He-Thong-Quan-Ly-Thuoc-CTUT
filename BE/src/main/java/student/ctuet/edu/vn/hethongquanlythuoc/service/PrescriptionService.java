@@ -195,8 +195,8 @@ public class PrescriptionService {
                         MedicineBatch lo = detail.getBatch();
                         if (lo != null) {
                                 lo.setRemainingQuantity(lo.getRemainingQuantity() + detail.getQuantity());
-                                batchRepository.save(lo);
-                                saveHistory(lo, account, MedicineHistory.HistoryType.IMPORT, detail.getQuantity());
+                                batchRepository.save(lo);                
+                                historyRepository.deleteByBatchAndType(lo, MedicineHistory.HistoryType.EXPORT);
                         }
                 }
 

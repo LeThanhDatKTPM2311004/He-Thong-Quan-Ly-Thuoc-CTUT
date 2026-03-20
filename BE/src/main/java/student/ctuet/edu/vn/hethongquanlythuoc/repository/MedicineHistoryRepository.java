@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import student.ctuet.edu.vn.hethongquanlythuoc.domain.MedicineBatch;
 import student.ctuet.edu.vn.hethongquanlythuoc.domain.MedicineHistory;
 
 public interface MedicineHistoryRepository extends JpaRepository<MedicineHistory, Long> {
@@ -25,4 +26,6 @@ public interface MedicineHistoryRepository extends JpaRepository<MedicineHistory
     @Modifying
     @Query("DELETE FROM MedicineHistory h WHERE h.batch.id = :batchId")
     void deleteByBatchId(Long batchId);
+
+    void deleteByBatchAndType(MedicineBatch batch, MedicineHistory.HistoryType type);
 }
