@@ -165,18 +165,18 @@ export default function TableAction({
             >
               Nhập thuốc
             </Button>
-          </>
-        )}
-
-        {/* Chỉ hiển thị sau khi chọn lô */}
-        {rowData.status && (
-          <>
             <Button
               onClick={handleAccess}
               className="bg-[#3D8E10] h-6 text-xs flex justify-self-end items-center text-white font-medium mr hover:opacity-80 transition"
             >
               Truy xuất
             </Button>
+          </>
+        )}
+
+        {/* Chỉ hiển thị sau khi chọn lô */}
+        {rowData.status && (
+          <>
             {rowData.status === "unexported" && (
               <>
                 <Button

@@ -16,6 +16,7 @@ export default function Table({
   onUnlockMedicine,
   selectedBatches,
   onSelectBatch,
+  onAccess,
 }) {
   return (
     <table className="w-full border-collapse">
@@ -39,6 +40,7 @@ export default function Table({
             onAdd={onAdd}
             onRemove={onRemove}
             onLockMedicine={onLockMedicine}
+            onAccess={onAccess}
             onUnlockMedicine={onUnlockMedicine}
             selectedBatch={selectedBatches?.[row.id]}
             onSelectBatch={onSelectBatch}

@@ -15,6 +15,7 @@ export default function TableRow({
   onUpdate,
   onAdd,
   onRemove,
+  onAccess,
   onLockMedicine,
   onUnlockMedicine,
 }) {
@@ -78,6 +79,7 @@ export default function TableRow({
               onUpdate={onUpdate}
               onAdd={onAdd}
               onRemove={onRemove}
+              onAccess={onAccess}
               onLockMedicine={onLockMedicine}
               onUnlockMedicine={onUnlockMedicine}
             />

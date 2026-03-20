@@ -55,7 +55,7 @@ export default function FormMedicine({
               type={field.type || "text"}
               value={formData[field.name] || ""}
               onChange={(e) => handleInputChange(field.name, e.target.value)}
-              readOnly={readOnly}
+              readOnly={field.readOnly || readOnly}
               required={field.required}
               placeholder={field.placeholder || ""}
               className={`${inputStyle} ${readOnly ? "bg-gray-50" : "bg-white"} ${cursorStyle}`}

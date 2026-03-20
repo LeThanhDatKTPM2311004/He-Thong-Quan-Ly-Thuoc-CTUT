@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://3dfe-27-3-112-127.ngrok-free.app",
+        target: "https://ping-fifteen-astrology-motorola.trycloudflare.com",
         changeOrigin: true,
         secure: false,
       },
