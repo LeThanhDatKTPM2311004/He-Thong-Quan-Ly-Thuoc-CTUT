@@ -29,11 +29,13 @@ import student.ctuet.edu.vn.hethongquanlythuoc.repository.MedicineBatchRepositor
 import student.ctuet.edu.vn.hethongquanlythuoc.repository.MedicineHistoryRepository;
 import student.ctuet.edu.vn.hethongquanlythuoc.repository.MedicineRepository;
 import student.ctuet.edu.vn.hethongquanlythuoc.repository.MedicineStatusRepository;
+import student.ctuet.edu.vn.hethongquanlythuoc.repository.PrescriptionDetailRepository;
 import student.ctuet.edu.vn.hethongquanlythuoc.specification.MedicineSpecification;
 
 @Service
 public class MedicineService {
 
+        private final PrescriptionDetailRepository prescriptionDetailRepository;
         private final MedicineRepository medicineRepository;
         private final MedicineBatchRepository batchRepository;
         private final MedicineStatusRepository medicineStatusRepository;
@@ -45,12 +47,14 @@ public class MedicineService {
                         MedicineBatchRepository batchRepository,
                         MedicineStatusRepository medicineStatusRepository,
                         MedicineHistoryRepository medicineHistoryRepository,
-                        AccountRepository accountRepository) {
+                        AccountRepository accountRepository,
+                        PrescriptionDetailRepository prescriptionDetailRepository) {
                 this.medicineRepository = medicineRepository;
                 this.batchRepository = batchRepository;
                 this.medicineStatusRepository = medicineStatusRepository;
                 this.medicineHistoryRepository = medicineHistoryRepository;
                 this.accountRepository = accountRepository;
+                this.prescriptionDetailRepository = prescriptionDetailRepository;
         }
 
         // ========================= CREATE =========================
@@ -159,6 +163,9 @@ public class MedicineService {
                 if (batch.hasBeenExported()) {
                         throw new AppException(ErrorCode.BATCH_ALREADY_EXPORTED);
                 }
+
+                medicineHistoryRepository.deleteByBatchId(batchId);
+                prescriptionDetailRepository.deleteByBatchId(batchId);
 
                 batchRepository.delete(batch);
         }

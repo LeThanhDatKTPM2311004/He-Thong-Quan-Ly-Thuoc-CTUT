@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import student.ctuet.edu.vn.hethongquanlythuoc.domain.MedicineHistory;
@@ -20,4 +21,8 @@ public interface MedicineHistoryRepository extends JpaRepository<MedicineHistory
             @Param("medicineId") long medicineId,
             @Param("from") Instant from,
             @Param("to") Instant to);
+
+    @Modifying
+    @Query("DELETE FROM MedicineHistory h WHERE h.batch.id = :batchId")
+    void deleteByBatchId(Long batchId);
 }
