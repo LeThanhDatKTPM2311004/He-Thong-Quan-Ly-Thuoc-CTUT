@@ -1,5 +1,8 @@
 package student.ctuet.edu.vn.hethongquanlythuoc.repository;
 
+import java.time.Instant;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,4 +18,6 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Stri
     long countByCodePrefix(String prefix);
 
     Page<Prescription> findAll(Specification<Prescription> spec, Pageable pageable);
+
+    List<Prescription> findByCreatedAtBetween(Instant from, Instant to);
 }
