@@ -26,8 +26,11 @@ export default function FormPrescription({
   const [diagnosis, setDiagnosis] = useState(initialData.diagnosis || "");
   const [notes, setNotes] = useState(initialData.notes || "");
 
-  // Validation errors
-  const [formError, setFormError] = useState("");
+  // Validation errors (batch)
+  const [errors, setErrors] = useState({});
+
+  // Lỗi MSSV từ API
+  const [studentError, setStudentError] = useState("");
 
   // Xác định các trạng thái hiển thị
   const isCreateMode = mode === "create";
@@ -57,39 +60,46 @@ export default function FormPrescription({
   // Realtime auto-fill thông tin sinh viên theo MSSV (debounce 400ms)
   useEffect(() => {
     if (isReadOnly) return;
+    if (!studentId.trim()) return;
+
     const timer = setTimeout(async () => {
-      if (!studentId.trim()) {
-        setFullname("");
-        setClassCode("");
-        setInsurance("");
-        return;
-      }
       try {
         const res = await getStudentByCode(studentId.trim());
         if (res) {
           setFullname(res.fullName ?? "");
           setClassCode(res.classCode ?? "");
           setInsurance(res.insuranceCode ?? "");
+          setStudentError("");
+          setErrors((prev) => ({ ...prev, studentId: "" }));
         }
-      } catch {
+      } catch (err) {
         setFullname("");
         setClassCode("");
         setInsurance("");
+        const apiMessage = err?.response?.data?.message;
+        setStudentError(apiMessage || "Sinh viên không tồn tại.");
       }
     }, 400);
+
     return () => clearTimeout(timer);
-  }, [studentId]);
+  }, [studentId, isReadOnly]);
 
   const validate = () => {
+    const newErrors = {};
+
+    if (!studentId.trim()) {
+      newErrors.studentId = "Vui lòng nhập mã số sinh viên.";
+    } else if (studentError) {
+      newErrors.studentId = studentError;
+    }
+
     if (!diagnosis.trim()) {
-      setFormError("Vui lòng nhập chẩn đoán.");
-      return false;
+      newErrors.diagnosis = "Vui lòng nhập chẩn đoán.";
     }
+
     if (medicines.length === 0) {
-      setFormError("Vui lòng thêm ít nhất một loại thuốc.");
-      return false;
-    }
-    if (
+      newErrors.medicines = "Vui lòng thêm ít nhất một loại thuốc.";
+    } else if (
       medicines.some(
         (med) =>
           med.quantity === "" ||
@@ -97,18 +107,18 @@ export default function FormPrescription({
           Number(med.quantity) < 1,
       )
     ) {
-      setFormError(
-        "Vui lòng nhập số lượng hợp lệ cho tất cả thuốc (tối thiểu 1).",
-      );
-      return false;
+      newErrors.medicines =
+        "Vui lòng nhập số lượng hợp lệ cho tất cả thuốc (tối thiểu 1).";
     }
-    setFormError("");
-    return true;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleConfirmMedicine = (selected) => {
     const newMedicines = selected.map((med) => ({ ...med, quantity: 1 }));
     setMedicines((prev) => [...prev, ...newMedicines]);
+    setErrors((prev) => ({ ...prev, medicines: "" }));
     setShowChoose(false);
   };
 
@@ -186,8 +196,8 @@ export default function FormPrescription({
           <div className="flex items-center justify-between gap-10 w-9/10 px-18">
             <div className="w-[55%] bg-[#F7F7F7] rounded-sm p-10 flex flex-col items-center justify-center gap-5 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">
               <h2 className="font-bold text-sm">👤 THÔNG TIN BỆNH NHÂN</h2>
-              <div className="flex items-center justify-between gap-10">
-                <div className="relative shadow-sm">
+              <div className="flex items-center justify-between gap-10 pb-6">
+                <div className="relative shadow-sm w-full">
                   <input
                     type="text"
                     id="fullname"
@@ -201,23 +211,40 @@ export default function FormPrescription({
                     HỌ VÀ TÊN
                   </label>
                 </div>
-                <div className="relative shadow-sm">
+                <div className="relative shadow-sm w-full">
                   <input
                     type="text"
                     id="studentId"
                     placeholder=" "
                     value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setStudentId(val);
+                      setErrors((prev) => ({ ...prev, studentId: "" }));
+                      if (!val.trim()) {
+                        setFullname("");
+                        setClassCode("");
+                        setInsurance("");
+                        setStudentError("");
+                      }
+                    }}
                     disabled={isReadOnly}
-                    className={inputClass(isReadOnly)}
+                    className={`${inputClass(isReadOnly)} ${
+                      errors.studentId ? "border border-red-400" : ""
+                    }`}
                   />
                   <label htmlFor="studentId" className={labelClass}>
                     MÃ SỐ SINH VIÊN
                   </label>
+                  {errors.studentId && (
+                    <p className="absolute left-0 -bottom-5 text-red-500 text-[10px] whitespace-nowrap">
+                      {errors.studentId}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-between gap-10">
-                <div className="relative shadow-sm">
+                <div className="relative shadow-sm w-full">
                   <input
                     type="text"
                     id="classCode"
@@ -231,7 +258,7 @@ export default function FormPrescription({
                     MÃ LỚP
                   </label>
                 </div>
-                <div className="relative shadow-sm">
+                <div className="relative shadow-sm w-full">
                   <input
                     type="text"
                     id="insurance"
@@ -255,21 +282,22 @@ export default function FormPrescription({
                   id="finalDiagnosis"
                   placeholder=" "
                   value={diagnosis}
-                  onChange={(e) => setDiagnosis(e.target.value)}
+                  onChange={(e) => {
+                    setDiagnosis(e.target.value);
+                    setErrors((prev) => ({ ...prev, diagnosis: "" }));
+                  }}
                   disabled={isReadOnly}
                   className={`${inputClass(isReadOnly)} ${
-                    !diagnosis.trim() && formError
-                      ? "border border-red-400"
-                      : ""
+                    errors.diagnosis ? "border border-red-400" : ""
                   }`}
                 />
                 <label htmlFor="finalDiagnosis" className={labelClass}>
                   KẾT LUẬN CHUẨN ĐOÁN
                 </label>
               </div>
-              {!diagnosis.trim() && formError && (
+              {errors.diagnosis && (
                 <p className="text-red-500 text-xs w-full">
-                  Vui lòng nhập chẩn đoán.
+                  {errors.diagnosis}
                 </p>
               )}
             </div>
@@ -302,10 +330,8 @@ export default function FormPrescription({
                 ))}
               </div>
             )}
-            {medicines.length === 0 && !isReadOnly && formError && (
-              <p className="text-red-500 text-xs">
-                Vui lòng thêm ít nhất một loại thuốc.
-              </p>
+            {errors.medicines && (
+              <p className="text-red-500 text-xs">{errors.medicines}</p>
             )}
           </div>
           <div className="flex flex-col items-center justify-center gap-3 w-8/10 h-40 px-20 bg-[#F7F7F7] rounded-sm p-10 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">

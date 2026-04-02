@@ -4,6 +4,17 @@ import FillTime from "../components/FillTime";
 import Table from "../components/Table/Table";
 import LogoCTUT from "../assets/images/LogoCTUT.png";
 import CheckIcon from "../assets/svg/CheckIcon";
+import { useState, useRef } from "react";
+import { importStudents } from "../services/studentService";
+
+const getDefaultRange = () => {
+  const now = new Date();
+  return {
+    from: `${now.getFullYear()}-01-01`,
+    to: now.toISOString().split("T")[0],
+  };
+};
+
 export default function Account() {
   const columns = [
     { key: "time", label: "Thời gian", align: "left" },
@@ -11,48 +22,64 @@ export default function Account() {
     { key: "status", label: "Trạng thái", align: "left" },
   ];
 
-  const data = [
-    {
-      time: "10:00 AM 21/11/2023",
-      name: "cctindao.xls",
-      status: "success",
-    },
-    {
-      time: "11:30 AM 21/11/2023",
-      name: "cctindao.xls",
-      status: "failed",
-    },
-    {
-      time: "10:00 AM 21/11/2023",
-      name: "cctindao.xls",
-      status: "success",
-    },
-    {
-      time: "11:30 AM 21/11/2023",
-      name: "cctindao.xls",
-      status: "failed",
-    },
-    {
-      time: "10:00 AM 21/11/2023",
-      name: "cctindao.xls",
-      status: "success",
-    },
-    {
-      time: "11:30 AM 21/11/2023",
-      name: "cctindao.xls",
-      status: "failed",
-    },
-  ];
-  const classes = [
-    { id: 1, className: "KTPM2311", studentCount: 76 },
-    { id: 2, className: "CNTT2301", studentCount: 68 },
-    { id: 3, className: "KTPM2312", studentCount: 72 },
-    { id: 4, className: "KHMT2305", studentCount: 65 },
-    { id: 5, className: "HTTT2308", studentCount: 70 },
-    { id: 6, className: "KTPM2313", studentCount: 80 },
-    { id: 7, className: "CNTT2302", studentCount: 62 },
-    { id: 8, className: "KTPM2314", studentCount: 75 },
-  ];
+  const [history, setHistory] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [filteredHistory, setFilteredHistory] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoading(true);
+    setError("");
+    const now = new Date();
+    const timeStr = now.toLocaleString("vi-VN");
+    try {
+      const data = await importStudents(file);
+      setHistory((prev) => [
+        { time: timeStr, name: file.name, status: "success", _date: now },
+        ...prev,
+      ]);
+      const grouped = {};
+      (data ?? []).forEach((s) => {
+        const key = s.classCode ?? "Không rõ";
+        if (!grouped[key]) grouped[key] = { className: key, studentCount: 0 };
+        grouped[key].studentCount += 1;
+      });
+      setClasses(Object.values(grouped).map((g, i) => ({ id: i + 1, ...g })));
+    } catch (err) {
+      setHistory((prev) => [
+        { time: timeStr, name: file.name, status: "failed", _date: now },
+        ...prev,
+      ]);
+      setError(err.message || "Import thất bại.");
+    } finally {
+      setLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleFilterHistory = ({ from, to }) => {
+    if (!from && !to) {
+      setFilteredHistory(null);
+      return;
+    }
+    const fromDate = from ? new Date(from) : null;
+    const toDate = to ? new Date(to + "T23:59:59") : null;
+    setFilteredHistory(
+      history.filter((h) => {
+        const d = h._date;
+        if (fromDate && d < fromDate) return false;
+        if (toDate && d > toDate) return false;
+        return true;
+      }),
+    );
+  };
+
+  const displayHistory = filteredHistory ?? history;
+
   const ClassCard = ({ className, studentCount }) => {
     return (
       <div className="flex items-center justify-center gap-5">
@@ -69,6 +96,7 @@ export default function Account() {
       </div>
     );
   };
+
   return (
     <div className="w-3/4 bg-white absolute top-20 left-105 max-h-5/6  rounded-2xl shadow-xl flex items-center flex-col overflow-y-auto">
       <h1 className="text-black text-center font-bold text-2xl pt-10 pb-3">
@@ -79,10 +107,23 @@ export default function Account() {
       <div className="flex items-center justify-center w-1/2 rounded-2xl border border-dashed border-1.5 border-[#1E6D41] h-30 p-10 bg-white">
         <Button className="rounded-md w-80 h-10 text-sm font-bold text-white bg-[linear-gradient(90deg,_#FFF_0%,_#1E6D41_57.21%)] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25),_0_4px_4px_0_rgba(0,0,0,0.25),_0_9.965px_9.675px_0_rgba(15,15,15,0.25)] flex items-center justify-center gap-5">
           <img src={excelIcon} alt="excelIcon" />
-          <label htmlFor="import">NHẬP DỮ LIỆU TỪ FILE EXCEL</label>
-          <input type="file" name="import" id="import" className="hidden" />
+          <label htmlFor="import">
+            {loading ? "ĐANG NHẬP..." : "NHẬP DỮ LIỆU TỪ FILE EXCEL"}
+          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            name="import"
+            id="import"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleFileChange}
+          />
         </Button>
       </div>
+      {error && (
+        <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+      )}
       <div
         className="p-5 bg-[#F8F8F8] 
        shadow-[-4px_4px_4px_0_rgba(0,0,0,0.25),_4px_4px_4px_0_rgba(0,0,0,0.25)] w-2/3 mt-5"
@@ -93,9 +134,12 @@ export default function Account() {
         <FillTime
           label="Lọc lịch sử nhập liệu từ:"
           button="Xác nhận lọc"
-        ></FillTime>
+          defaultFrom={getDefaultRange().from}
+          defaultTo={getDefaultRange().to}
+          onChange={handleFilterHistory}
+        />
         <div className="overflow-y-auto max-h-[200px]">
-          <Table columns={columns} data={data}></Table>
+          <Table columns={columns} data={displayHistory}></Table>
         </div>
       </div>
       <div className="flex items-center justify-center p-10 w-2/3 gap-5">

@@ -17,6 +17,8 @@ import ViewPrescription from "../pages/ViewPrescription.jsx";
 import Student from "../pages/Student.jsx";
 import Notification from "../pages/Notification.jsx";
 import Statistics from "../pages/Statistics.jsx";
+import ProtectedRoute from "../components/ProtectedRoute.jsx";
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -30,76 +32,185 @@ export default function AppRouter() {
             </AuthLayout>
           }
         />
-        {/* Main layout */}
+
+        {/* ── ADMIN ONLY ── */}
         <Route element={<MainLayout />}>
-          <Route path="/account" element={<Account />} />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <Account />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route element={<MainLayout hideHeader={false} />}>
-          <Route path="/account/create" element={<CreateAccount />} />
+          <Route
+            path="/account/create"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <CreateAccount />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route element={<MainLayout hideHeader={false} />}>
-          <Route path="/account/update" element={<UpdateAccount />} />
+          <Route
+            path="/account/update"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <UpdateAccount />
+              </ProtectedRoute>
+            }
+          />
         </Route>
+
+        {/* ── ADMIN + STAFF ── */}
         <Route
           element={
             <MainLayout hideHeader={false} title="Quản Lí Thông Tin Cá Nhân" />
           }
         >
-          <Route path="/personal" element={<Personal />} />
+          <Route
+            path="/personal"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <Personal />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route element={<MainLayout hideHeader={true} title="Quản Lí Thuốc" />}>
-          <Route path="/medicine" element={<Medicine />} />
+          <Route
+            path="/medicine"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <Medicine />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={<MainLayout hideHeader={false} title="Quản Lí Thuốc" />}
         >
-          <Route path="/medicine/export" element={<MedicineExport />} />
+          <Route
+            path="/medicine/export"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <MedicineExport />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={<MainLayout hideHeader={false} title="Quản Lí Thuốc" />}
         >
-          <Route path="/medicine/create" element={<CreateMedicine />} />
+          <Route
+            path="/medicine/create"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <CreateMedicine />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={<MainLayout hideHeader={false} title="Quản Lí Thuốc" />}
         >
-          <Route path="/medicine/update" element={<UpdateMedicine />} />
+          <Route
+            path="/medicine/update"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <UpdateMedicine />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={<MainLayout hideHeader={false} title="Quản Lí Thuốc" />}
         >
-          <Route path="/medicine/report" element={<MedicineReport />} />
+          <Route
+            path="/medicine/report"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <MedicineReport />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={<MainLayout hideHeader={true} title="Quản Lí Đơn Thuốc" />}
         >
-          <Route path="/prescription" element={<Prescription />} />
+          <Route
+            path="/prescription"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <Prescription />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={<MainLayout hideHeader={false} title="Quản Lí Đơn Thuốc" />}
         >
-          <Route path="/prescription/create" element={<CreatePrescription />} />
+          <Route
+            path="/prescription/create"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <CreatePrescription />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={<MainLayout hideHeader={false} title="Quản Lí Đơn Thuốc" />}
         >
-          <Route path="/prescription/view" element={<ViewPrescription />} />
+          <Route
+            path="/prescription/view"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <ViewPrescription />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={
             <MainLayout hideHeader={false} title="Thông tin sinh viên" />
           }
         >
-          <Route path="/student" element={<Student />} />
+          <Route
+            path="/student"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <Student />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route element={<MainLayout hideHeader={true} title="Thông báo" />}>
-          <Route path="/notification" element={<Notification />} />
+          <Route
+            path="/notification"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <Notification />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route
           element={<MainLayout hideHeader={false} title="Số Liệu Thống Kê" />}
         >
-          <Route path="/statistics" element={<Statistics />} />
+          <Route
+            path="/statistics"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <Statistics />
+              </ProtectedRoute>
+            }
+          />
         </Route>
+
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

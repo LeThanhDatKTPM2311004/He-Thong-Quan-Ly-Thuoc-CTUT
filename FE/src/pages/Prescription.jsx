@@ -151,7 +151,7 @@ export default function Prescription() {
         {loading ? (
           <p className="text-center text-gray-400 mt-10">Đang tải...</p>
         ) : (
-          <div className="overflow-y-auto max-h-[500px] p-5">
+          <div className="max-h-[650px] p-5">
             <Table
               columns={columns}
               data={data}

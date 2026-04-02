@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://ping-fifteen-astrology-motorola.trycloudflare.com",
+        target: "https://fwd-note-proceedings-lot.trycloudflare.com",
         changeOrigin: true,
         secure: false,
       },
