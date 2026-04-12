@@ -101,6 +101,14 @@ public class StudentService {
         return mapToResponse(student);
     }
 
+    // ========================= GET ALL =========================
+    public List<StudentResponse> getStudents() {
+        return studentRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     // ========================= HELPER =========================
     // tìm đúng cột trong excel dựa vào tên cột đã cho, ròi lấy giá trị ô đó
     private String getCellString(Row row, Map<String, Integer> colIndex, String colName) {

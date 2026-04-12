@@ -46,4 +46,12 @@ public class StudentController {
                 response));
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<StudentResponse>>> getStudents() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy danh sách sinh viên thành công",
+                studentService.getStudents()));
+    }
+
 }
