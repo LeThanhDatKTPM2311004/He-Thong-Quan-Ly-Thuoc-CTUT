@@ -1,5 +1,7 @@
 package student.ctuet.edu.vn.hethongquanlythuoc.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -32,15 +34,18 @@ public class AuthService {
     private final AccountRepository accountRepository;
     private final JwtUtils jwtUtils;
     private final TokenBlacklistService tokenBlacklistService;
+    private final NotificationService notificationService;
 
     public AuthService(AuthenticationManager authenticationManager,
             AccountRepository accountRepository,
             JwtUtils jwtUtils,
-            TokenBlacklistService tokenBlacklistService) {
+            TokenBlacklistService tokenBlacklistService,
+            NotificationService notificationService) {
         this.authenticationManager = authenticationManager;
         this.accountRepository = accountRepository;
         this.jwtUtils = jwtUtils;
         this.tokenBlacklistService = tokenBlacklistService;
+        this.notificationService = notificationService;
     }
 
     // ===================== LOGIN =====================
@@ -55,6 +60,14 @@ public class AuthService {
             String username = authentication.getName();
             Account account = accountRepository.findByUsername(username)
                     .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+            notificationService.send(
+                    account,
+                    "Đăng nhập thành công!",
+                    "Bạn vừa đăng nhập lúc " + LocalDateTime.now()
+                            .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
+                    "SUCCESS",
+                    null);
 
             String accessToken = jwtUtils.generateAccessToken(authentication, account.getId());
             String refreshToken = jwtUtils.generateRefreshToken(authentication, account.getId());
