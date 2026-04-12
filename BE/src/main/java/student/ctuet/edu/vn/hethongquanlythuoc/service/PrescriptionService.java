@@ -87,6 +87,7 @@ public class PrescriptionService {
                 prescription.setStatus(status);
                 prescription.setDiagnosis(request.diagnosis());
                 prescription.setNote(request.note());
+                prescription.setMedicalStaff(request.medicalStaff());
 
                 List<PrescriptionDetail> details = request.details().stream().map(item -> {
 
@@ -332,6 +333,7 @@ public class PrescriptionService {
                                 p.getStudent().getInsuranceCode(),
                                 p.getDiagnosis(),
                                 p.getNote(),
+                                p.getMedicalStaff(),
                                 p.getStatus().getStatusName(),
                                 p.getCreatedAt(),
                                 details);

@@ -53,6 +53,9 @@ public class Prescription {
     @Column(name = "thoi_diem_cap_nhat", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "can_bo_y_te")
+    private String medicalStaff;
+
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();

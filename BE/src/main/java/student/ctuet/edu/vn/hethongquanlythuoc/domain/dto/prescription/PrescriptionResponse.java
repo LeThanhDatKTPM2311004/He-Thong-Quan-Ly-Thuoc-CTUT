@@ -11,6 +11,7 @@ public record PrescriptionResponse(
         String insuranceCode,
         String diagnosis,
         String note,
+        String medicalStaff,
         String status,
         Instant createdAt,
         List<DetailResponse> details) {

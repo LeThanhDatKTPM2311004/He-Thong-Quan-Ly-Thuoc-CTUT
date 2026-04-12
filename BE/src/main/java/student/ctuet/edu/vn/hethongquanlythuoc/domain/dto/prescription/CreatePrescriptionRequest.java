@@ -6,6 +6,7 @@ public record CreatePrescriptionRequest(
         String studentCode,
         String diagnosis,
         String note,
+        String medicalStaff,
         List<DetailItem> details) {
     public record DetailItem(
             long medicineId,
