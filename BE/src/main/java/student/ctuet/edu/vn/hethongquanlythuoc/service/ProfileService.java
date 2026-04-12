@@ -28,22 +28,22 @@ public class ProfileService {
     }
 
     // ========================= GET PROFILE =========================
-    public Account getProfile(long id) {
-        return accountRepository.findById(id)
+    public Account getProfile(String username) {
+        return accountRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
     }
 
     // ========================= GET LOGIN HISTORY =========================
-    public List<LoginHistory> getLoginHistory(long id) {
-        accountRepository.findById(id)
+    public List<LoginHistory> getLoginHistory(String username) {
+        Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-        return loginHistoryRepository.findByAccountIdOrderByLoginTimeDesc(id);
+        return loginHistoryRepository.findByAccountIdOrderByLoginTimeDesc(account.getId());
     }
 
     // ========================= CHANGE PASSWORD =========================
-    public Account changePassword(long id, ChangePasswordRequest request) {
-        Account account = accountRepository.findById(id)
+    public Account changePassword(String username, ChangePasswordRequest request) {
+        Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.oldPassword(), account.getPassword())) {
