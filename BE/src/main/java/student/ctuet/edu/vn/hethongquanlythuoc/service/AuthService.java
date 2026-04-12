@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import student.ctuet.edu.vn.hethongquanlythuoc.domain.Account;
+import student.ctuet.edu.vn.hethongquanlythuoc.domain.LoginHistory;
 import student.ctuet.edu.vn.hethongquanlythuoc.domain.dto.account.AccountResponse;
 import student.ctuet.edu.vn.hethongquanlythuoc.domain.dto.auth.LoginRequest;
 import student.ctuet.edu.vn.hethongquanlythuoc.domain.dto.auth.LoginResponse;
@@ -22,6 +23,7 @@ import student.ctuet.edu.vn.hethongquanlythuoc.domain.dto.auth.RefreshTokenReque
 import student.ctuet.edu.vn.hethongquanlythuoc.exception.AppException;
 import student.ctuet.edu.vn.hethongquanlythuoc.exception.ErrorCode;
 import student.ctuet.edu.vn.hethongquanlythuoc.repository.AccountRepository;
+import student.ctuet.edu.vn.hethongquanlythuoc.repository.LoginHistoryRepository;
 import student.ctuet.edu.vn.hethongquanlythuoc.security.JwtUtils;
 
 @Service
@@ -35,17 +37,20 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     private final TokenBlacklistService tokenBlacklistService;
     private final NotificationService notificationService;
+    private final LoginHistoryRepository loginHistoryRepository;
 
     public AuthService(AuthenticationManager authenticationManager,
             AccountRepository accountRepository,
             JwtUtils jwtUtils,
             TokenBlacklistService tokenBlacklistService,
-            NotificationService notificationService) {
+            NotificationService notificationService, 
+        LoginHistoryRepository loginHistoryRepository) {
         this.authenticationManager = authenticationManager;
         this.accountRepository = accountRepository;
         this.jwtUtils = jwtUtils;
         this.tokenBlacklistService = tokenBlacklistService;
         this.notificationService = notificationService;
+        this.loginHistoryRepository = loginHistoryRepository;
     }
 
     // ===================== LOGIN =====================
@@ -60,6 +65,8 @@ public class AuthService {
             String username = authentication.getName();
             Account account = accountRepository.findByUsername(username)
                     .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+                    saveHistory(account, "SUCCESS");
 
             notificationService.send(
                     account,
@@ -160,5 +167,15 @@ public class AuthService {
                 account.getStatusAccount().getStatusAccountName(),
                 account.getCreatedAt(),
                 account.getUpdatedAt());
+    }
+
+
+    private void saveHistory(Account account, String status) {
+        LoginHistory history = new LoginHistory();
+        history.setAccount(account);
+        history.setLoginTime(LocalDateTime.now());
+        history.setDeviceName("Không biết làm");
+        history.setStatus(status);
+        loginHistoryRepository.save(history);
     }
 }
