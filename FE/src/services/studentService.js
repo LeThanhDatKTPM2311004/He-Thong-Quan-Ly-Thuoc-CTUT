@@ -36,3 +36,5 @@ export const importStudents = async (file) => {
   }
   return json.data ?? json;
 };
+// Lấy tất cả sinh viên
+export const getAllStudents = () => api.get("/students");

@@ -1,9 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   PieChart,
   Pie,
   Cell,
-  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -11,41 +10,14 @@ import {
   YAxis,
   CartesianGrid,
   Legend,
-  ScatterChart,
-  Scatter,
-  ReferenceArea,
-  ReferenceLine,
+  Tooltip,
 } from "recharts";
 import FillTime from "../components/FillTime.jsx";
-// Thay thế bằng API call
-const mockData = {
-  mostUsedMedicine: {
-    month: "01/2025",
-    name: "Thuốc chuột",
-    used: 125,
-    total: 150,
-    unit: "Viên",
-  },
-  mostCommonDisease: {
-    month: "01/2025",
-    mainDisease: {
-      name: "Trĩ",
-      percentage: 75,
-    },
-    otherDiseases: [
-      { name: "Viêm gan", percentage: 7 },
-      { name: "Sốt siêu vi", percentage: 5.2 },
-    ],
-  },
-  monthlyCases: {
-    month: "01/2025",
-    total: 12,
-    unit: "Ca",
-    comparedToPrevious: 36.24,
-    trend: "down", // "up" | "down"
-  },
-};
-//
+import {
+  getStatisticsOverview,
+  getMedicineImportExport,
+  getExpiryWarning,
+} from "../services/statisticsService";
 
 const COLORS = {
   primary: "#2563EB",
@@ -73,7 +45,6 @@ function MedicineCard({ data }) {
         <br />
         tháng {month}
       </p>
-
       <div
         style={{
           display: "flex",
@@ -88,30 +59,23 @@ function MedicineCard({ data }) {
           {used} / {total} viên
         </span>
       </div>
-
-      {/* Progress bar tự scale theo percentage thực */}
       <div style={styles.progressTrack}>
         <div style={{ ...styles.progressBar, width: `${percentage}%` }} />
       </div>
       <span style={styles.percentText}>{percentage}%</span>
-
       <p style={styles.medicineName}>{name}</p>
     </div>
   );
 }
 
 // --- Card 2
-const RADIAN = Math.PI / 180;
-
 function DiseaseCard({ data }) {
   const { month, mainDisease, otherDiseases } = data;
   const remaining = 100 - mainDisease.percentage;
-
   const chartData = [
     { name: mainDisease.name, value: mainDisease.percentage },
     { name: "Khác", value: remaining },
   ];
-
   const renderCustomLabel = ({ cx, cy }) => (
     <text
       x={cx}
@@ -123,7 +87,6 @@ function DiseaseCard({ data }) {
       {mainDisease.name}
     </text>
   );
-
   return (
     <div
       style={styles.card}
@@ -150,8 +113,6 @@ function DiseaseCard({ data }) {
             ))}
           </div>
         </div>
-
-        {/* Donut chart */}
         <div
           style={{ width: 110, height: 110, marginLeft: "auto", flexShrink: 0 }}
         >
@@ -185,7 +146,6 @@ function DiseaseCard({ data }) {
 function CasesCard({ data }) {
   const { total, unit, comparedToPrevious, trend } = data;
   const isUp = trend === "up";
-
   return (
     <div
       style={styles.card}
@@ -226,7 +186,7 @@ function CasesCard({ data }) {
     </div>
   );
 }
-// ===================== STYLES =====================
+
 const styles = {
   wrapper: {
     display: "flex",
@@ -240,28 +200,15 @@ const styles = {
     minWidth: 220,
     maxWidth: 360,
   },
-  label: {
-    fontSize: 13,
-    color: COLORS.textLight,
-    margin: 0,
-    lineHeight: 1.5,
-  },
+  label: { fontSize: 13, color: COLORS.textLight, margin: 0, lineHeight: 1.5 },
   bigNumber: {
     fontSize: 38,
     fontWeight: 700,
     color: COLORS.textDark,
     lineHeight: 1,
   },
-  unit: {
-    fontSize: 14,
-    color: COLORS.textMid,
-    fontWeight: 500,
-  },
-  smallText: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    margin: 0,
-  },
+  unit: { fontSize: 14, color: COLORS.textMid, fontWeight: 500 },
+  smallText: { fontSize: 12, color: COLORS.textLight, margin: 0 },
   progressTrack: {
     height: 6,
     backgroundColor: COLORS.gray,
@@ -289,163 +236,6 @@ const styles = {
     marginBottom: 0,
   },
 };
-// Mock data - sau này thay bằng API call
-const mockColData = [
-  {
-    tenThuoc: "Paracetamol",
-    soLuongNhap: 2,
-    soLuongXuat: 8,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Amoxicillin",
-    soLuongNhap: 7,
-    soLuongXuat: 5,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Ibuprofen",
-    soLuongNhap: 14,
-    soLuongXuat: 7,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Vitamin C",
-    soLuongNhap: 7,
-    soLuongXuat: 13,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Cetirizine",
-    soLuongNhap: 15,
-    soLuongXuat: 16,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Metformin",
-    soLuongNhap: 17,
-    soLuongXuat: 13,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Amoxicillin",
-    soLuongNhap: 7,
-    soLuongXuat: 5,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Ibuprofen",
-    soLuongNhap: 14,
-    soLuongXuat: 7,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Vitamin C",
-    soLuongNhap: 7,
-    soLuongXuat: 13,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Cetirizine",
-    soLuongNhap: 15,
-    soLuongXuat: 16,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Metformin",
-    soLuongNhap: 17,
-    soLuongXuat: 13,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Paracetamol",
-    soLuongNhap: 2,
-    soLuongXuat: 8,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Amoxicillin",
-    soLuongNhap: 7,
-    soLuongXuat: 5,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Ibuprofen",
-    soLuongNhap: 14,
-    soLuongXuat: 7,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Vitamin C",
-    soLuongNhap: 7,
-    soLuongXuat: 13,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Cetirizine",
-    soLuongNhap: 15,
-    soLuongXuat: 16,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Metformin",
-    soLuongNhap: 17,
-    soLuongXuat: 13,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Amoxicillin",
-    soLuongNhap: 7,
-    soLuongXuat: 5,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Ibuprofen",
-    soLuongNhap: 14,
-    soLuongXuat: 7,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Vitamin C",
-    soLuongNhap: 7,
-    soLuongXuat: 13,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Cetirizine",
-    soLuongNhap: 15,
-    soLuongXuat: 16,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-  {
-    tenThuoc: "Metformin",
-    soLuongNhap: 17,
-    soLuongXuat: 13,
-    thoiGianBatDau: "2025-01-01",
-    thoiGianKetThuc: "2026-12-12",
-  },
-];
 
 const XUAT_COLOR = "#B51C1C";
 const NHAP_COLOR = "#264580";
@@ -477,11 +267,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-function MedicineChart() {
-  // Lấy ngày từ data (có thể thay bằng state để filter sau)
-  const startDate = mockColData[0]?.thoiGianBatDau ?? "";
-  const endDate = mockColData[0]?.thoiGianKetThuc ?? "";
-
+function MedicineChart({ importExportData, dateRange }) {
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     const [y, m, d] = dateStr.split("-");
@@ -490,12 +276,12 @@ function MedicineChart() {
 
   const chartData = useMemo(
     () =>
-      mockColData.map((item) => ({
-        name: item.tenThuoc,
-        "Số lượng nhập": item.soLuongNhap,
-        "Số lượng xuất": item.soLuongXuat,
+      importExportData.map((item) => ({
+        name: item.medicineName,
+        "Số lượng nhập": item.totalImport,
+        "Số lượng xuất": item.totalExport,
       })),
-    [],
+    [importExportData],
   );
 
   return (
@@ -508,7 +294,6 @@ function MedicineChart() {
         margin: "0 auto",
       }}
     >
-      {/* Tiêu đề */}
       <div style={{ textAlign: "center", marginBottom: 4 }}>
         <h2
           style={{
@@ -533,12 +318,10 @@ function MedicineChart() {
             fontWeight: "bold",
           }}
         >
-          Từ <p style={{ color: "#264580" }}>{formatDate(startDate)}</p> Đến{" "}
-          <p style={{ color: "#264580" }}>{formatDate(endDate)}</p>
+          Từ <p style={{ color: "#264580" }}>{formatDate(dateRange.from)}</p>{" "}
+          Đến <p style={{ color: "#264580" }}>{formatDate(dateRange.to)}</p>
         </label>
       </div>
-
-      {/* Chart */}
       <div style={{ width: "100%", height: 400 }}>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart
@@ -619,421 +402,30 @@ function MedicineChart() {
   );
 }
 
-const mockPlotData = [
-  {
-    tenThuoc: "Paracetamol",
-    maLo: "LOT-001",
-    hanSuDung: "2026-02-29",
-    soLuong: 100,
-  },
-  {
-    tenThuoc: "Paracetamol",
-    maLo: "LOT-002",
-    hanSuDung: "2026-06-01",
-    soLuong: 115,
-  },
-  {
-    tenThuoc: "Amoxicillin",
-    maLo: "LOT-003",
-    hanSuDung: "2026-03-05",
-    soLuong: 145,
-  },
-  {
-    tenThuoc: "Amoxicillin",
-    maLo: "LOT-004",
-    hanSuDung: "2026-02-28",
-    soLuong: 80,
-  },
-  {
-    tenThuoc: "Vitamin C",
-    maLo: "LOT-005",
-    hanSuDung: "2026-04-10",
-    soLuong: 175,
-  },
-  {
-    tenThuoc: "Vitamin C",
-    maLo: "LOT-006",
-    hanSuDung: "2026-03-15",
-    soLuong: 160,
-  },
-  {
-    tenThuoc: "Ibuprofen",
-    maLo: "LOT-007",
-    hanSuDung: "2026-05-01",
-    soLuong: 190,
-  },
-  {
-    tenThuoc: "Ibuprofen",
-    maLo: "LOT-008",
-    hanSuDung: "2026-03-25",
-    soLuong: 200,
-  },
-  {
-    tenThuoc: "Cetirizine",
-    maLo: "LOT-009",
-    hanSuDung: "2026-06-20",
-    soLuong: 220,
-  },
-  {
-    tenThuoc: "Cetirizine",
-    maLo: "LOT-010",
-    hanSuDung: "2026-07-01",
-    soLuong: 235,
-  },
-  {
-    tenThuoc: "Metformin",
-    maLo: "LOT-011",
-    hanSuDung: "2026-03-15",
-    soLuong: 250,
-  },
-  {
-    tenThuoc: "Metformin",
-    maLo: "LOT-012",
-    hanSuDung: "2026-03-01",
-    soLuong: 260,
-  },
-  {
-    tenThuoc: "Omeprazole",
-    maLo: "LOT-013",
-    hanSuDung: "2026-03-10",
-    soLuong: 110,
-  },
-  {
-    tenThuoc: "Omeprazole",
-    maLo: "LOT-014",
-    hanSuDung: "2026-03-18",
-    soLuong: 125,
-  },
-  {
-    tenThuoc: "Atorvastatin",
-    maLo: "LOT-015",
-    hanSuDung: "2026-05-20",
-    soLuong: 185,
-  },
-  {
-    tenThuoc: "Atorvastatin",
-    maLo: "LOT-016",
-    hanSuDung: "2026-06-05",
-    soLuong: 210,
-  },
-  {
-    tenThuoc: "Losartan",
-    maLo: "LOT-017",
-    hanSuDung: "2026-08-20",
-    soLuong: 255,
-  },
-  {
-    tenThuoc: "Losartan",
-    maLo: "LOT-018",
-    hanSuDung: "2026-09-01",
-    soLuong: 270,
-  },
-  {
-    tenThuoc: "Azithromycin",
-    maLo: "LOT-019",
-    hanSuDung: "2026-02-26",
-    soLuong: 60,
-  },
-  {
-    tenThuoc: "Azithromycin",
-    maLo: "LOT-020",
-    hanSuDung: "2026-02-28",
-    soLuong: 75,
-  },
-];
-
-const ZONES = [
-  {
-    x1: 0,
-    x2: 3,
-    fill: "rgba(139,0,0,0.16)",
-    stroke: "#8B0000",
-    label: "< 3",
-    labelColor: "#8B0000",
-    desc: "Đặc biệt nguy hiểm",
-  },
-  {
-    x1: 3,
-    x2: 7,
-    fill: "rgba(220,38,38,0.13)",
-    stroke: "#DC2626",
-    label: "3–7",
-    labelColor: "#DC2626",
-    desc: "Nguy hiểm",
-  },
-  {
-    x1: 7,
-    x2: 14,
-    fill: "rgba(202,138,4,0.13)",
-    stroke: "#CA8A04",
-    label: "7–14",
-    labelColor: "#CA8A04",
-    desc: "Cảnh báo",
-  },
-  {
-    x1: 14,
-    x2: 30,
-    fill: "rgba(234,88,12,0.09)",
-    stroke: "#EA580C",
-    label: "14–30",
-    labelColor: "#EA580C",
-    desc: "Chú ý",
-  },
-];
-
-const X_MAX = 30;
-const Y_MAX = 310;
-const DIVIDERS = [
-  { x: 3, color: "#8B0000" },
-  { x: 7, color: "#DC2626" },
-  { x: 14, color: "#CA8A04" },
-];
-
-function buildColorMap(names) {
-  const total = names.length;
-  const map = {};
-  // Bắt đầu từ hue=25 (tránh đỏ xung đột với vùng cảnh báo), bước đều
-  const HUE_START = 25;
-  const HUE_RANGE = 320; // tránh hue gần 0/360 để không gần đỏ cảnh báo
-  names.forEach((name, i) => {
-    const h = (HUE_START + Math.round((i / total) * HUE_RANGE)) % 360;
-    // Xen kẽ saturation/lightness để màu sát nhau trên vòng hue vẫn khác nhau
-    const s = i % 2 === 0 ? 72 : 58;
-    const l = i % 3 === 0 ? 38 : i % 3 === 1 ? 44 : 50;
-    map[name] = `hsl(${h}, ${s}%, ${l}%)`;
-  });
-  return map;
-}
-const TODAY = new Date();
-TODAY.setHours(0, 0, 0, 0);
-
-function daysUntilExpiry(dateStr) {
-  const exp = new Date(dateStr);
-  exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp - TODAY) / (1000 * 60 * 60 * 24));
-}
-
+// Chỉ khai báo 1 lần
 function getZoneInfo(days) {
-  if (days <= 0) return { color: "#8B0000", label: "⛔ Đã hết hạn" };
-  if (days < 3) return { color: "#8B0000", label: "⛔ Đặc biệt nguy hiểm" };
-  if (days < 7) return { color: "#DC2626", label: "🔴 Nguy hiểm" };
-  if (days < 14) return { color: "#CA8A04", label: "🟡 Cảnh báo" };
-  return { color: "#EA580C", label: "🟠 Chú ý" };
+  if (days <= 0)
+    return { color: "#8B0000", label: "Đã hết hạn", bg: "#FEE2E2" };
+  if (days < 3)
+    return { color: "#8B0000", label: "Đặc biệt nguy hiểm", bg: "#FEE2E2" };
+  if (days < 7) return { color: "#DC2626", label: "Nguy hiểm", bg: "#FEE2E2" };
+  if (days < 14) return { color: "#CA8A04", label: "Cảnh báo", bg: "#FEF9C3" };
+  return { color: "#EA580C", label: "Chú ý", bg: "#FFEDD5" };
 }
 
-// ===================== CUSTOM DOT =====================
-const SquareDot = (props) => {
-  const { cx, cy, fill } = props;
-  const s = 12;
-  return (
-    <rect
-      x={cx - s / 2}
-      y={cy - s / 2}
-      width={s}
-      height={s}
-      fill={fill}
-      rx={1.5}
-      opacity={0.93}
-    />
+function MedicineExpiryChart({ expiryData }) {
+  const rows = useMemo(
+    () =>
+      expiryData
+        .filter((item) => item.daysLeft < 30)
+        .sort((a, b) => a.daysLeft - b.daysLeft),
+    [expiryData],
   );
-};
-
-// ===================== TOOLTIP =====================
-const ExpiryTooltip = ({ active, payload }) => {
-  if (!active || !payload?.length) return null;
-  const d = payload[0]?.payload;
-  if (!d) return null;
-  const zone = getZoneInfo(d.daysLeft);
-  return (
-    <div
-      style={{
-        background: "#fff",
-        border: `2px solid ${d.color}`,
-        borderRadius: 8,
-        padding: "10px 14px",
-        fontSize: 12,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.13)",
-        minWidth: 175,
-      }}
-    >
-      <p
-        style={{
-          fontWeight: 700,
-          color: d.color,
-          marginBottom: 5,
-          fontSize: 13,
-        }}
-      >
-        {d.tenThuoc}
-      </p>
-      <p style={{ color: "#555", margin: "2px 0" }}>
-        Lô: <strong>{d.maLo}</strong>
-      </p>
-      <p style={{ color: "#555", margin: "2px 0" }}>
-        Hạn SD: <strong>{d.hanSuDung}</strong>
-      </p>
-      <p style={{ color: "#555", margin: "2px 0" }}>
-        Số lượng: <strong>{d.soLuong}</strong>
-      </p>
-      <div
-        style={{
-          marginTop: 7,
-          padding: "3px 8px",
-          borderRadius: 5,
-          background: zone.color + "18",
-          color: zone.color,
-          fontWeight: 600,
-          fontSize: 11,
-          display: "inline-block",
-        }}
-      >
-        {d.daysLeft <= 0
-          ? zone.label
-          : `${zone.label} (còn ${d.daysLeft} ngày)`}
-      </div>
-    </div>
-  );
-};
-
-// ===================== LEGEND =====================
-function ChartLegend({ medicines }) {
-  return (
-    <div style={{ marginTop: 20 }}>
-      {/* Zone legend */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          justifyContent: "center",
-          flexWrap: "wrap",
-          marginBottom: 14,
-        }}
-      >
-        {ZONES.map(({ fill, stroke, desc, label }) => (
-          <div
-            key={label}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 11,
-              color: "#555",
-            }}
-          >
-            <div
-              style={{
-                width: 18,
-                height: 13,
-                background: fill,
-                border: `1.5px solid ${stroke}`,
-                borderRadius: 2,
-                flexShrink: 0,
-              }}
-            />
-            <span>
-              <strong style={{ color: stroke }}>{label} ngày</strong> — {desc}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Medicine legend */}
-      {medicines.length > 0 ? (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px 20px",
-            justifyContent: "center",
-          }}
-        >
-          {medicines.map(({ name, color }) => (
-            <div
-              key={name}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 12,
-                color: "#444",
-              }}
-            >
-              <div
-                style={{
-                  width: 12,
-                  height: 12,
-                  background: color,
-                  borderRadius: 2,
-                  flexShrink: 0,
-                }}
-              />
-              <span>{name}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p
-          style={{
-            textAlign: "center",
-            color: "#16A34A",
-            fontWeight: 600,
-            fontSize: 13,
-          }}
-        >
-          Không có thuốc nào sắp hết hạn trong 30 ngày tới
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ===================== MAIN =====================
-function MedicineExpiryChart() {
-  const { scatterGroups, visibleMedicines } = useMemo(() => {
-    // 1. Lấy danh sách tên thuốc UNIQUE (theo thứ tự xuất hiện)
-    const nameOrder = [];
-    mockPlotData.forEach(({ tenThuoc }) => {
-      if (!nameOrder.includes(tenThuoc)) nameOrder.push(tenThuoc);
-    });
-
-    // 2. Tạo colorMap không lặp màu
-    const colorMap = buildColorMap(nameOrder);
-
-    // 3. Lọc & group — chỉ giữ lô < 30 ngày
-    const groups = {};
-    mockPlotData.forEach((item) => {
-      const daysLeft = daysUntilExpiry(item.hanSuDung);
-      if (daysLeft >= 30) return; // ← ẩn bình thường
-      const point = {
-        ...item,
-        x: Math.max(0, daysLeft),
-        y: item.soLuong,
-        daysLeft,
-        color: colorMap[item.tenThuoc],
-      };
-      if (!groups[item.tenThuoc]) groups[item.tenThuoc] = [];
-      groups[item.tenThuoc].push(point);
-    });
-
-    const visibleNames = Object.keys(groups);
-    return {
-      visibleMedicines: visibleNames.map((n) => ({
-        name: n,
-        color: colorMap[n],
-      })),
-      scatterGroups: visibleNames.map((n) => ({
-        name: n,
-        color: colorMap[n],
-        data: groups[n],
-      })),
-    };
-  }, []);
 
   return (
     <div
       style={{
-        fontFamily: "'Segoe UI', Tahoma, sans-serif",
-        background: "#fff",
+        fontFamily: "'Segoe UI', sans-serif",
         padding: "32px 40px",
         maxWidth: "75%",
         margin: "0 auto",
@@ -1050,139 +442,258 @@ function MedicineExpiryChart() {
           marginBottom: 6,
         }}
       >
-        Thống kê số lượng thuốc theo hạn sử dụng
+        Thống kê thuốc sắp hết hạn sử dụng
       </h2>
       <p
         style={{
           textAlign: "center",
           fontSize: 12,
           color: "#888",
-          marginBottom: 28,
+          marginBottom: 24,
         }}
       >
         Chỉ hiển thị thuốc còn dưới 30 ngày hạn sử dụng
       </p>
 
-      <ResponsiveContainer width="100%" height={380}>
-        <ScatterChart margin={{ top: 24, right: 30, left: 20, bottom: 45 }}>
-          {/* Vùng nền cảnh báo */}
-          {ZONES.map(({ x1, x2, fill, stroke }) => (
-            <ReferenceArea
-              key={`zone-${x1}`}
-              x1={x1}
-              x2={x2}
-              y1={0}
-              y2={Y_MAX}
-              fill={fill}
-              stroke={stroke}
-              strokeOpacity={0.4}
-              strokeDasharray="4 3"
-            />
-          ))}
-
-          {/* Đường phân vùng */}
-          {DIVIDERS.map(({ x, color }) => (
-            <ReferenceLine
-              key={`div-${x}`}
-              x={x}
-              stroke={color}
-              strokeDasharray="5 3"
-              strokeOpacity={0.65}
-              label={{
-                value: `${x}`,
-                position: "top",
-                fontSize: 10,
-                fill: color,
-                fontWeight: 700,
+      {rows.length === 0 ? (
+        <p
+          style={{
+            textAlign: "center",
+            color: "#16A34A",
+            fontWeight: 600,
+            fontSize: 14,
+            marginTop: 32,
+          }}
+        >
+          ✅ Không có thuốc nào sắp hết hạn trong 30 ngày tới
+        </p>
+      ) : (
+        <table
+          style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
+        >
+          <thead>
+            <tr
+              style={{
+                backgroundColor: "#F3F4F6",
+                borderBottom: "2px solid #E5E7EB",
               }}
-            />
-          ))}
-
-          <CartesianGrid strokeDasharray="3 3" stroke="#ebebeb" />
-
-          <XAxis
-            type="number"
-            dataKey="x"
-            domain={[0, X_MAX]}
-            ticks={[0, 3, 7, 14, 20, 29]}
-            tickFormatter={(v) => (v === 29 ? "<30" : String(v))}
-            axisLine={{ stroke: "#d9d9d9", strokeWidth: 1 }}
-            tickLine={false}
-            tick={{ fontSize: 11, fill: "#000" }}
-            label={{
-              value: "Số ngày còn hạn sử dụng",
-              position: "insideBottom",
-              offset: -25,
-              fontSize: 12,
-              fill: "#D9D9D9",
-              fontStyle: "italic",
-            }}
-          />
-          <YAxis
-            type="number"
-            dataKey="y"
-            domain={[0, Y_MAX]}
-            ticks={[50, 100, 150, 200, 250, 300]}
-            axisLine={{ stroke: "#d9d9d9", strokeWidth: 1 }}
-            tickLine={false}
-            tick={{ fontSize: 11, fill: "#000" }}
-            label={{
-              value: "Số lượng",
-              angle: -90,
-              position: "insideLeft",
-              offset: 10,
-              fontSize: 12,
-              fill: "#D9D9D9",
-              fontStyle: "italic",
-            }}
-          />
-
-          <Tooltip
-            content={<ExpiryTooltip />}
-            cursor={{ strokeDasharray: "3 3", stroke: "#ccc" }}
-          />
-
-          {scatterGroups.map(({ name, color, data }) => (
-            <Scatter
-              key={name}
-              name={name}
-              data={data}
-              fill={color}
-              shape={<SquareDot />}
-            />
-          ))}
-        </ScatterChart>
-      </ResponsiveContainer>
-
-      <ChartLegend medicines={visibleMedicines} />
+            >
+              {[
+                "STT",
+                "Tên thuốc",
+                "Số lô",
+                "Hạn sử dụng",
+                "Số lượng còn lại",
+                "Số ngày còn lại",
+                "Mức độ",
+              ].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: "10px 14px",
+                    textAlign: "left",
+                    fontWeight: 700,
+                    color: "#374151",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((item, i) => {
+              const zone = getZoneInfo(item.daysLeft);
+              return (
+                <tr
+                  key={`${item.batchNumber}-${i}`}
+                  style={{
+                    borderBottom: "1px solid #F3F4F6",
+                    backgroundColor: i % 2 === 0 ? "#fff" : "#FAFAFA",
+                  }}
+                >
+                  <td style={{ padding: "10px 14px", color: "#6B7280" }}>
+                    {i + 1}
+                  </td>
+                  <td
+                    style={{
+                      padding: "10px 14px",
+                      fontWeight: 600,
+                      color: "#111",
+                    }}
+                  >
+                    {item.medicineName}
+                  </td>
+                  <td style={{ padding: "10px 14px", color: "#374151" }}>
+                    {item.batchNumber}
+                  </td>
+                  <td style={{ padding: "10px 14px", color: "#374151" }}>
+                    {item.expiryDate}
+                  </td>
+                  <td style={{ padding: "10px 14px", color: "#374151" }}>
+                    {item.remainingQuantity}
+                  </td>
+                  <td
+                    style={{
+                      padding: "10px 14px",
+                      fontWeight: 700,
+                      color: zone.color,
+                    }}
+                  >
+                    {item.daysLeft <= 0
+                      ? "Đã hết hạn"
+                      : `${item.daysLeft} ngày`}
+                  </td>
+                  <td style={{ padding: "10px 14px" }}>
+                    <span
+                      style={{
+                        backgroundColor: zone.bg,
+                        color: zone.color,
+                        fontWeight: 600,
+                        fontSize: 11,
+                        padding: "3px 10px",
+                        borderRadius: 99,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {zone.label}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
 
 export default function Statistics() {
-  const [data, setData] = useState(mockData);
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  const [overviewData, setOverviewData] = useState(null);
+  const [importExportData, setImportExportData] = useState([]);
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [expiryData, setExpiryData] = useState([]);
+
+  useEffect(() => {
+    getStatisticsOverview({ month: currentMonth, year: currentYear })
+      .then((res) => setOverviewData(res))
+      .catch((err) => console.error("overview error:", err));
+  }, []);
+
+  useEffect(() => {
+    getMedicineImportExport({})
+      .then((res) => setImportExportData(Array.isArray(res) ? res : []))
+      .catch((err) => console.error("import/export error:", err));
+  }, []);
+
+  useEffect(() => {
+    getExpiryWarning()
+      .then((res) => setExpiryData(Array.isArray(res) ? res : []))
+      .catch((err) => console.error("expiry error:", err));
+  }, []);
+
+  const handleFilter = ({ from, to }) => {
+    setDateRange({ from, to });
+    getMedicineImportExport({ from, to })
+      .then((res) => setImportExportData(Array.isArray(res) ? res : []))
+      .catch((err) => console.error("filter error:", err));
+  };
+
+  const medicineCardData = overviewData
+    ? {
+        month: `${String(currentMonth).padStart(2, "0")}/${currentYear}`,
+        name: overviewData.topMedicineName,
+        used: overviewData.topMedicineExported,
+        total: overviewData.topMedicineTotalStock,
+        unit: overviewData.topMedicineUnit,
+      }
+    : { month: "", name: "—", used: 0, total: 0, unit: "" };
+
+  const diseaseCardData = useMemo(() => {
+    if (!overviewData?.diagnosisList?.length) {
+      return {
+        month: `${String(currentMonth).padStart(2, "0")}/${currentYear}`,
+        mainDisease: { name: "—", percentage: 0 },
+        otherDiseases: [],
+      };
+    }
+    const totalCount = overviewData.diagnosisList.reduce(
+      (s, d) => s + d.count,
+      0,
+    );
+    const sorted = [...overviewData.diagnosisList].sort(
+      (a, b) => b.count - a.count,
+    );
+    const main = sorted[0];
+    const others = sorted.slice(1, 3);
+    return {
+      month: `${String(currentMonth).padStart(2, "0")}/${currentYear}`,
+      mainDisease: {
+        name: main.diagnosis,
+        percentage:
+          totalCount > 0 ? Math.round((main.count / totalCount) * 100) : 0,
+      },
+      otherDiseases: others.map((d) => ({
+        name: d.diagnosis,
+        percentage:
+          totalCount > 0 ? Math.round((d.count / totalCount) * 100) : 0,
+      })),
+    };
+  }, [overviewData]);
+
+  const casesCardData = overviewData
+    ? {
+        total: overviewData.totalCasesThisMonth,
+        unit: "Ca",
+        comparedToPrevious:
+          overviewData.totalCasesLastMonth > 0
+            ? Math.abs(
+                Math.round(
+                  ((overviewData.totalCasesThisMonth -
+                    overviewData.totalCasesLastMonth) /
+                    overviewData.totalCasesLastMonth) *
+                    100,
+                ),
+              )
+            : 0,
+        trend:
+          overviewData.totalCasesThisMonth >= overviewData.totalCasesLastMonth
+            ? "up"
+            : "down",
+      }
+    : { total: 0, unit: "Ca", comparedToPrevious: 0, trend: "down" };
+
   return (
     <>
       <div className="w-3/4 bg-white absolute top-20 left-105 rounded-2xl shadow-xl flex flex-col items-center gap-5 overflow-y-auto max-h-5/6">
         <h1 className="text-3xl font-bold pb-5 pt-10">SỐ LIỆU THỐNG KÊ</h1>
         <div
           style={styles.wrapper}
-          className="w-full px-20 py-5 flex items-center justify-between "
+          className="w-full px-20 py-5 flex items-center justify-between"
         >
-          <MedicineCard data={data.mostUsedMedicine} />
-          <DiseaseCard data={data.mostCommonDisease} />
-          <CasesCard data={data.monthlyCases} />
+          <MedicineCard data={medicineCardData} />
+          <DiseaseCard data={diseaseCardData} />
+          <CasesCard data={casesCardData} />
         </div>
         <FillTime
           label="Tải số liệu theo thời gian tùy chỉnh:"
           button="Xác nhận lọc"
+          onChange={handleFilter}
         />
         <div className="w-full">
-          {" "}
-          <MedicineChart />
+          <MedicineChart
+            importExportData={importExportData}
+            dateRange={dateRange}
+          />
         </div>
         <div className="w-full p-5">
-          <MedicineExpiryChart />
+          <MedicineExpiryChart expiryData={expiryData} />
         </div>
       </div>
     </>

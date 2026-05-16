@@ -31,13 +31,17 @@ export default function Prescription() {
   const [error, setError] = useState("");
   const [pagination, setPagination] = useState({
     page: 0,
-    size: 10,
+    size: 8,
     totalPages: 0,
     totalElements: 0,
   });
 
-  const [showAlert, setShowAlert] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState(null); // { prescriptionCode, fullName }
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
+
+  const [showInsufficientAlert, setShowInsufficientAlert] = useState(false);
+  const [insufficientMessage, setInsufficientMessage] = useState("");
+  const [pendingDispenseRow, setPendingDispenseRow] = useState(null);
 
   const mapStatus = (s = "") => {
     if (s === "Chờ thuốc") return "waiting";
@@ -96,19 +100,19 @@ export default function Prescription() {
       prescriptionCode: row.prescriptionCode,
       fullName: row.fullName,
     });
-    setShowAlert(true);
+    setShowDeleteAlert(true);
   };
 
   const handleConfirmDelete = async () => {
     if (!pendingDelete) return;
     try {
       await deletePrescription(pendingDelete.prescriptionCode);
-      setShowAlert(false);
+      setShowDeleteAlert(false);
       setPendingDelete(null);
       fetchPrescriptions(pagination.page, keyword ?? "");
     } catch (err) {
       setError(err.message || "Xóa đơn thuốc thất bại.");
-      setShowAlert(false);
+      setShowDeleteAlert(false);
     }
   };
 
@@ -117,7 +121,18 @@ export default function Prescription() {
       await dispensePrescription(row.prescriptionCode);
       fetchPrescriptions(pagination.page, keyword ?? "");
     } catch (err) {
-      setError(err.message || "Cấp thuốc thất bại.");
+      const msg = err.message || "";
+      // Nếu lỗi liên quan đến số lượng thuốc → hiện Alert cảnh báo
+      if (
+        msg.toLowerCase().includes("số lượng") ||
+        msg.toLowerCase().includes("không đủ")
+      ) {
+        setInsufficientMessage(msg);
+        setPendingDispenseRow(row);
+        setShowInsufficientAlert(true);
+      } else {
+        setError(msg || "Cấp thuốc thất bại.");
+      }
     }
   };
 
@@ -134,7 +149,7 @@ export default function Prescription() {
     <>
       <div className="w-3/4 bg-white absolute top-20 left-105 h-5/6 rounded-2xl shadow-xl">
         <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3">
-          DANH SÁCH THUỐC
+          DANH SÁCH ĐƠN THUỐC
         </h1>
         <Button
           className="bg-[#CA20A5] h-6 text-xs flex justify-self-end items-center text-white font-bold mr-15"
@@ -191,14 +206,37 @@ export default function Prescription() {
         )}
       </div>
 
+      {/* Alert xóa đơn thuốc */}
       <Alert
-        show={showAlert}
-        onClose={() => setShowAlert(false)}
-        onCancel={() => setShowAlert(false)}
+        show={showDeleteAlert}
+        onClose={() => setShowDeleteAlert(false)}
+        onCancel={() => setShowDeleteAlert(false)}
         onEnter={handleConfirmDelete}
         textPart1="Bạn chắc chắn muốn xóa đơn thuốc của"
         main={pendingDelete?.fullName ?? ""}
         textPart2="khỏi danh sách không?"
+        Cancel="Hủy bỏ"
+        Enter="Tiến hành xóa"
+      />
+
+      {/* Alert cảnh báo thuốc không đủ số lượng */}
+      <Alert
+        show={showInsufficientAlert}
+        onClose={() => setShowInsufficientAlert(false)}
+        onCancel={() => setShowInsufficientAlert(false)}
+        onEnter={() => {
+          setShowInsufficientAlert(false);
+          navigate("/prescription/view", {
+            state: { prescriptionCode: pendingDispenseRow?.prescriptionCode },
+          });
+        }}
+        color="#B51C1C"
+        textPart1=""
+        main={insufficientMessage}
+        textPart2=""
+        hidden="unhidden"
+        Cancel="Hủy"
+        Enter="Xem chi tiết"
       />
     </>
   );

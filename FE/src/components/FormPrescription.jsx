@@ -38,6 +38,9 @@ export default function FormPrescription({
   const isEditMode = mode === "edit";
   const canEdit = isEditMode && status === "pending";
   const isReadOnly = isViewMode || (isEditMode && !isEditing);
+  // Lock thông tin cá nhân khi đã auto-fill từ MSSV thành công
+  const studentFilled = !!fullname && !studentError;
+  const isPersonalInfoLocked = isReadOnly || studentFilled;
 
   const showAddButton = isCreateMode || isEditing;
   const showRemoveButton = isCreateMode || isEditing;
@@ -45,15 +48,46 @@ export default function FormPrescription({
   const showEditButton = canEdit && !isEditing;
   const showSaveButton = isEditing;
 
-  // Medicines list từ API (cho FormChoseMedicine)
+  // Medicines list từ API — chỉ lấy thuốc còn hàng (totalQuantity > 0)
   const [medicineList, setMedicineList] = useState([]);
+
   useEffect(() => {
     getMedicines({ page: 0, size: 100 })
-      .then((res) =>
-        setMedicineList(
-          res.content.map((m) => ({ id: m.id, name: m.name, unit: m.unit })),
-        ),
-      )
+      .then((res) => {
+        // fullList gồm TẤT CẢ thuốc (kể cả hết hàng) — dùng để patch stock vào đơn cũ
+        const fullList = res.content.map((m) => ({
+          id: m.id,
+          name: m.name,
+          unit: m.unit,
+          stock: m.totalQuantity,
+        }));
+
+        // availableList chỉ gồm thuốc còn hàng — dùng cho FormChoseMedicine
+        const availableList = fullList.filter((m) => m.stock > 0);
+
+        setMedicineList(availableList);
+
+        // Patch stock + stockError vào TẤT CẢ thuốc trong đơn hiện có.
+        // Dùng fullList để phát hiện cả những thuốc đã hết hàng sau khi kê đơn.
+        setMedicines((prev) =>
+          prev.map((med) => {
+            if (med.stock != null) return med;
+
+            const found = fullList.find((m) => m.id === med.id);
+            if (!found) return med; // thuốc bị xóa khỏi hệ thống
+
+            let stockError = "";
+            if (found.stock === 0) {
+              stockError = "Thuốc đã hết trong kho";
+            } else if (Number(med.quantity) > found.stock) {
+              stockError =
+                `Tồn kho chỉ còn ${found.stock} ${found.unit ?? ""}`.trim();
+            }
+
+            return { ...med, stock: found.stock, stockError };
+          }),
+        );
+      })
       .catch(() => {});
   }, []);
 
@@ -104,11 +138,12 @@ export default function FormPrescription({
         (med) =>
           med.quantity === "" ||
           med.quantity === null ||
-          Number(med.quantity) < 1,
+          Number(med.quantity) < 1 ||
+          med.stockError, // ← chặn nếu có lỗi tồn kho
       )
     ) {
       newErrors.medicines =
-        "Vui lòng nhập số lượng hợp lệ cho tất cả thuốc (tối thiểu 1).";
+        "Vui lòng kiểm tra số lượng thuốc (tối thiểu 1, không vượt tồn kho).";
     }
 
     setErrors(newErrors);
@@ -116,16 +151,50 @@ export default function FormPrescription({
   };
 
   const handleConfirmMedicine = (selected) => {
-    const newMedicines = selected.map((med) => ({ ...med, quantity: 1 }));
+    // Lấy stock từ medicineList để đính kèm vào thuốc được chọn
+    const newMedicines = selected.map((med) => {
+      const found = medicineList.find((m) => m.id === med.id);
+      return {
+        ...med,
+        quantity: 1,
+        stock: found?.stock ?? med.stock ?? null,
+        stockError: "",
+      };
+    });
     setMedicines((prev) => [...prev, ...newMedicines]);
     setErrors((prev) => ({ ...prev, medicines: "" }));
     setShowChoose(false);
   };
 
-  const updateQuantity = (id, quantity) => {
-    const value = quantity === "" ? "" : Math.max(1, Number(quantity));
+  // Validate realtime số lượng theo tồn kho
+  const updateQuantity = (id, rawValue) => {
     setMedicines((prev) =>
-      prev.map((med) => (med.id === id ? { ...med, quantity: value } : med)),
+      prev.map((med) => {
+        if (med.id !== id) return med;
+
+        if (rawValue === "") {
+          return { ...med, quantity: "", stockError: "" };
+        }
+
+        const num = Number(rawValue);
+        const stock = med.stock ?? null;
+
+        // Kiểm tra vượt tồn kho
+        if (stock !== null && num > stock) {
+          return {
+            ...med,
+            quantity: num, // giữ giá trị người dùng nhập để hiển thị
+            stockError: `Tồn kho chỉ còn ${stock} ${med.unit ?? ""}`.trim(),
+          };
+        }
+
+        // Hợp lệ
+        return {
+          ...med,
+          quantity: Math.max(1, num),
+          stockError: "",
+        };
+      }),
     );
   };
 
@@ -200,20 +269,6 @@ export default function FormPrescription({
                 <div className="relative shadow-sm w-full">
                   <input
                     type="text"
-                    id="fullname"
-                    placeholder=" "
-                    value={fullname}
-                    onChange={(e) => setFullname(e.target.value)}
-                    disabled={isReadOnly}
-                    className={inputClass(isReadOnly)}
-                  />
-                  <label htmlFor="fullname" className={labelClass}>
-                    HỌ VÀ TÊN
-                  </label>
-                </div>
-                <div className="relative shadow-sm w-full">
-                  <input
-                    type="text"
                     id="studentId"
                     placeholder=" "
                     value={studentId}
@@ -242,6 +297,20 @@ export default function FormPrescription({
                     </p>
                   )}
                 </div>
+                <div className="relative shadow-sm w-full">
+                  <input
+                    type="text"
+                    id="fullname"
+                    placeholder=" "
+                    value={fullname}
+                    onChange={(e) => setFullname(e.target.value)}
+                    disabled={isPersonalInfoLocked}
+                    className={inputClass(isPersonalInfoLocked)}
+                  />
+                  <label htmlFor="fullname" className={labelClass}>
+                    HỌ VÀ TÊN
+                  </label>
+                </div>
               </div>
               <div className="flex items-center justify-between gap-10">
                 <div className="relative shadow-sm w-full">
@@ -251,8 +320,8 @@ export default function FormPrescription({
                     placeholder=" "
                     value={classCode}
                     onChange={(e) => setClassCode(e.target.value)}
-                    disabled={isReadOnly}
-                    className={inputClass(isReadOnly)}
+                    disabled={isPersonalInfoLocked}
+                    className={inputClass(isPersonalInfoLocked)}
                   />
                   <label htmlFor="classCode" className={labelClass}>
                     MÃ LỚP
@@ -265,8 +334,8 @@ export default function FormPrescription({
                     placeholder=" "
                     value={insurance}
                     onChange={(e) => setInsurance(e.target.value)}
-                    disabled={isReadOnly}
-                    className={inputClass(isReadOnly)}
+                    disabled={isPersonalInfoLocked}
+                    className={inputClass(isPersonalInfoLocked)}
                   />
                   <label htmlFor="insurance" className={labelClass}>
                     MÃ SỐ BẢO HIỂM Y TẾ
@@ -302,6 +371,8 @@ export default function FormPrescription({
               )}
             </div>
           </div>
+
+          {/* Danh sách thuốc */}
           <div className="flex flex-col items-center justify-center gap-5 w-8/10 min-h-50 bg-[#F7F7F7] rounded-sm shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)] p-5">
             <h2 className="font-bold text-sm">💊 ĐƠN THUỐC</h2>
             {showAddButton && (
@@ -334,6 +405,8 @@ export default function FormPrescription({
               <p className="text-red-500 text-xs">{errors.medicines}</p>
             )}
           </div>
+
+          {/* Ghi chú */}
           <div className="flex flex-col items-center justify-center gap-3 w-8/10 h-40 px-20 bg-[#F7F7F7] rounded-sm p-10 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">
             <h2 className="font-bold text-sm">📝 GHI CHÚ VÀ LỜI DẶN</h2>
             <input
@@ -391,7 +464,7 @@ export default function FormPrescription({
       {showChoose && (
         <div className="fixed inset-0 left-100 bg-opacity-50 flex items-center justify-center z-50">
           <FormChoseMedicine
-            data={medicineList}
+            data={medicineList} // ← chỉ gồm thuốc còn hàng
             selectedMedicines={medicines}
             onCancel={() => setShowChoose(false)}
             onConfirm={handleConfirmMedicine}

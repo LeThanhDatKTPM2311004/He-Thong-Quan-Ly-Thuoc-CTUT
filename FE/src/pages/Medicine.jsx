@@ -18,7 +18,8 @@ import { Loader2 } from "lucide-react";
 export default function Medicine() {
   const navigate = useNavigate();
   const [selectedBatches, setSelectedBatches] = useState({});
-  const { keyword } = useOutletContext() ?? {};
+
+  const { keyword, searchBatch } = useOutletContext() ?? {};
 
   const columns = [
     { key: "stt", label: "STT", align: "center" },
@@ -79,6 +80,21 @@ export default function Medicine() {
       }));
 
       setData(mapped);
+
+      // Auto-select lô nếu có searchBatch — MainLayout đã resolve tên thuốc,
+      // nên kw lúc này đã đúng, chỉ cần tìm và chọn lô trong kết quả
+      if (searchBatch) {
+        mapped.forEach((item) => {
+          const targetBatch = item.batches.find((b) => b._id === searchBatch);
+          if (targetBatch) {
+            setSelectedBatches((prev) => ({
+              ...prev,
+              [item.id]: targetBatch,
+            }));
+          }
+        });
+      }
+
       setPagination((prev) => ({
         ...prev,
         page: res.pageable.pageNumber,
@@ -92,9 +108,11 @@ export default function Medicine() {
     }
   };
 
+  // MainLayout đã resolve searchBatch → tên thuốc → keyword
+  // nên Medicine chỉ cần watch keyword và searchBatch, gọi thẳng fetchMedicines
   useEffect(() => {
     fetchMedicines(0, keyword ?? "");
-  }, [keyword]);
+  }, [keyword, searchBatch]);
 
   const handleAdd = (row) => {
     setSelectedMedicineId(row.id);
@@ -107,10 +125,7 @@ export default function Medicine() {
     const selectedBatch = selectedBatches[row.id];
     if (!selectedBatch) return;
     navigate("/medicine/update", {
-      state: {
-        _id: selectedBatch._id,
-        medicineId: row.id,
-      },
+      state: { _id: selectedBatch._id, medicineId: row.id },
     });
   };
 
@@ -118,7 +133,7 @@ export default function Medicine() {
     const selectedBatch = selectedBatches[row.id];
     if (!selectedBatch) return;
     setPendingDeleteBatchId(selectedBatch._id);
-    setPendingDeleteBatchName(selectedBatch.batchId); // tên lô hiển thị trong Alert
+    setPendingDeleteBatchName(selectedBatch.batchId);
     setPendingDeleteMedicineId(row.id);
     setShowAlert(true);
   };
@@ -126,36 +141,28 @@ export default function Medicine() {
   const handleConfirmDelete = async () => {
     if (!pendingDeleteBatchId) return;
     try {
-      // Xóa optimistic trên UI ngay lập tức
       setData((prev) =>
         prev.map((item) => {
           if (item.id !== pendingDeleteMedicineId) return item;
-          const updatedBatches = item.batches.filter(
-            (b) => b._id !== pendingDeleteBatchId,
-          );
-          return { ...item, batches: updatedBatches };
+          return {
+            ...item,
+            batches: item.batches.filter((b) => b._id !== pendingDeleteBatchId),
+          };
         }),
       );
-      // Clear selectedBatch của row đó để tránh user bấm xóa lại batch cũ
       setSelectedBatches((prev) => {
         const next = { ...prev };
         delete next[pendingDeleteMedicineId];
         return next;
       });
-
       setShowAlert(false);
       setPendingDeleteBatchId(null);
       setPendingDeleteBatchName("");
       setPendingDeleteMedicineId(null);
-
-      // Gọi API xóa thật
       await deleteBatch(pendingDeleteBatchId);
-
-      // Reload để đồng bộ số lượng tổng
       fetchMedicines(pagination.page, keyword ?? "");
     } catch (err) {
       setError(err.message || "Xóa lô thuốc thất bại.");
-      // Rollback: reload lại data gốc
       fetchMedicines(pagination.page, keyword ?? "");
     }
   };
@@ -205,9 +212,7 @@ export default function Medicine() {
   };
 
   const handleTrace = (row) => {
-    navigate("/medicine/export", {
-      state: { medicineId: row.id },
-    });
+    navigate("/medicine/export", { state: { medicineId: row.id } });
   };
 
   const handleReport = () => {

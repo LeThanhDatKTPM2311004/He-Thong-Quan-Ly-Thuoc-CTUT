@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://fwd-note-proceedings-lot.trycloudflare.com",
+        target: "https://active-backgrounds-browsing-cause.trycloudflare.com",
         changeOrigin: true,
         secure: false,
       },

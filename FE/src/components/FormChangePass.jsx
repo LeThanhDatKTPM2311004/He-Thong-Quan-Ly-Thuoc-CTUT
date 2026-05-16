@@ -4,17 +4,15 @@ import Title from "./Title.jsx";
 import Button from "./Button.jsx";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { tokenStorage } from "../lib/tokenStorage";
-import { login } from "../services/authService";
-import { changePassword } from "../services/listAccountService";
+import { changePassword as changeMyPassword } from "../services/profileService";
+import { changePassword as changeAccountPassword } from "../services/listAccountService.js";
 
 export default function FormChangePass({
   isVisible = false,
   onClose,
   showCurrentPassword = true,
-  accountId, // id của tài khoản cần đổi mật khẩu
-  // Personal.jsx: không truyền → tự lấy từ tokenStorage
-  // Account.jsx:  truyền row.id vào
+  accountId, // truyền vào → admin đổi pass người khác (accountService)
+  // không truyền → đổi pass chính mình (profileService)
 }) {
   const [show_pass, setShow] = useState(false);
   const [show_newpass, setShowNewPass] = useState(false);
@@ -40,7 +38,6 @@ export default function FormChangePass({
     setError("");
     setSuccess("");
 
-    // Validate không để trống
     if (showCurrentPassword && !form.currentPassword) {
       setError("Vui lòng nhập mật khẩu hiện tại.");
       return;
@@ -60,31 +57,25 @@ export default function FormChangePass({
 
     setLoading(true);
     try {
-      // Lấy thông tin account hiện tại
-      const account = await tokenStorage.getAccount();
-      const targetId = accountId ?? account?.id;
-
-      // Nếu có mật khẩu hiện tại → xác minh bằng API login trước
-      if (showCurrentPassword) {
-        try {
-          await login(account.username, form.currentPassword);
-        } catch {
-          setError("Mật khẩu hiện tại không đúng.");
-          setLoading(false);
-          return;
-        }
+      if (accountId) {
+        // Admin đổi pass người khác: PUT /accounts/:id/change-password
+        await changeAccountPassword(accountId, {
+          oldPassword: "",
+          newPassword: form.newPassword,
+          confirmPassword: form.confirmPassword,
+        });
+      } else {
+        // Tự đổi pass: PUT /profile/change-password
+        await changeMyPassword({
+          oldPassword: form.currentPassword,
+          newPassword: form.newPassword,
+          confirmPassword: form.confirmPassword,
+        });
       }
-
-      // Gọi API đổi mật khẩu
-      await changePassword(targetId, {
-        newPassword: form.newPassword,
-        confirmPassword: form.confirmPassword,
-      });
 
       setSuccess("Đổi mật khẩu thành công!");
       setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
 
-      // Tự đóng form sau 1.5 giây
       setTimeout(() => {
         setSuccess("");
         onClose?.();

@@ -60,8 +60,14 @@ function MenuItem({ icon, label, isActive, onClick }) {
   return (
     <span
       onClick={onClick}
-      className={`flex w-3/4 items-center hover:bg-[#264580] p-2 rounded-xl transition hover:text-white cursor-pointer
-        ${isActive ? "bg-[#264580] text-white" : ""}`}
+      className={`flex w-3/4 items-center p-2 rounded-xl cursor-pointer
+        transition-all duration-300 ease-in-out
+        hover:bg-[#264580]/20 hover:text-[#264580] hover:translate-x-1
+        ${
+          isActive
+            ? "bg-[#264580] text-white shadow-md translate-x-1"
+            : "text-[#9197B3]"
+        }`}
     >
       <div className="flex justify-center">
         <IconComponent />

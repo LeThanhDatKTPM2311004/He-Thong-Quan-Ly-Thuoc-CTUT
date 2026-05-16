@@ -1,14 +1,12 @@
 import Title from "./Title";
 import VectorSearch from "../assets/svg/VectorSearch.jsx";
-import { useState } from "react";
 
 export default function Search({
   hideHeader = true,
   title = "Quản Lí Tài Khoản",
   onSearch,
+  keyword = "", // nhận từ ngoài, bỏ useState nội bộ
 }) {
-  const [keyword, setKeyword] = useState("");
-
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       onSearch?.(keyword.trim());
@@ -17,9 +15,7 @@ export default function Search({
 
   const handleChange = (e) => {
     const value = e.target.value;
-    setKeyword(value);
-    // Nếu xóa hết thì reset về danh sách đầy đủ
-    if (value === "") onSearch?.("");
+    onSearch?.(value === "" ? "" : value); // truyền thẳng lên, không cần Enter
   };
 
   return (

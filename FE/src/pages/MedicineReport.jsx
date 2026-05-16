@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackIcon from "../assets/svg/BackIcon.jsx";
 import FillTime from "../components/FillTime.jsx";
-import fileIcon from "../assets/images/fileIcon.png";
 import Title from "../components/Title.jsx";
 import excelIcon from "../assets/images/excelIcon.png";
 import pdfIcon from "../assets/images/pdfIcon.png";
@@ -23,12 +22,12 @@ export default function MedicineReport() {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState(getDefaultRange);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
+  const [hasFiltered, setHasFiltered] = useState(false); // ← chỉ hiện sau khi người dùng chọn filter
   const [loading, setLoading] = useState({
     pdf: false,
     excel: false,
     preview: false,
   });
-  const [filterLoading, setFilterLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleExportPdf = async () => {
@@ -67,11 +66,12 @@ export default function MedicineReport() {
     }
   };
 
-  const handlePreview = async () => {
+  const handlePreview = async (range = dateRange) => {
     setError("");
     setLoading((prev) => ({ ...prev, preview: true }));
+    setPdfPreviewUrl(null);
     try {
-      const blob = await exportMedicinePdf(dateRange);
+      const blob = await exportMedicinePdf(range);
       const url = URL.createObjectURL(blob);
       setPdfPreviewUrl(url);
     } catch (err) {
@@ -99,60 +99,54 @@ export default function MedicineReport() {
       <FillTime
         defaultFrom={dateRange.from}
         defaultTo={dateRange.to}
-        loading={filterLoading}
         onChange={(range) => {
-          setFilterLoading(true);
           setDateRange(range);
-          setPdfPreviewUrl(null);
-          setTimeout(() => setFilterLoading(false), 300);
+          setHasFiltered(true);
+          handlePreview(range); // ← tự động load preview luôn
         }}
       />
+
       {error && (
         <p className="text-red-500 text-sm text-center mt-2">{error}</p>
       )}
-      <div className="relative">
-        {/* Vùng preview: hiện iframe nếu có URL, hiện ảnh placeholder nếu chưa có */}
-        <div className="relative mx-auto w-160 mb-5">
-          {pdfPreviewUrl ? (
-            <iframe
-              src={pdfPreviewUrl}
-              className="w-full h-96 rounded border border-gray-200"
-              title="PDF Preview"
-            />
-          ) : (
-            <img src={fileIcon} alt="fileIcon" className="w-full" />
-          )}
 
-          {/* XEM TRƯỚC nằm đè lên góc dưới */}
-          <p
-            onClick={!loading.preview ? handlePreview : undefined}
-            className={`underline text-xs absolute z-10 bottom-4 left-[47%] cursor-pointer hover:text-blue-600 ${
-              loading.preview ? "text-gray-400 cursor-wait" : ""
-            }`}
-          >
-            {loading.preview ? "Đang tải..." : "XEM TRƯỚC"}
-          </p>
-        </div>
+      {/* Chỉ hiện preview + nút xuất sau khi người dùng thao tác filter */}
+      {hasFiltered && (
+        <div className="relative mt-4">
+          <div className="relative mx-auto w-160 mb-5">
+            {loading.preview ? (
+              <div className="w-full h-96 flex items-center justify-center text-gray-400 text-sm">
+                Đang tải xem trước...
+              </div>
+            ) : pdfPreviewUrl ? (
+              <iframe
+                src={pdfPreviewUrl}
+                className="w-full h-96 rounded border border-gray-200"
+                title="PDF Preview"
+              />
+            ) : null}
+          </div>
 
-        <div className="flex items-center justify-center gap-20 w-1/2 mx-auto">
-          <Button
-            onClick={handleExportExcel}
-            disabled={loading.excel}
-            className="w-30 h-10 bg-gradient-to-r from-white to-[#1E6D41] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25),_0_4px_4px_0_rgba(0,0,0,0.25),_0_9.965px_9.675px_0_rgba(15,15,15,0.25)] flex items-center justify-center text-white font-bold gap-2"
-          >
-            <img src={excelIcon} alt="" />
-            {loading.excel ? "..." : "EXCEL"}
-          </Button>
-          <Button
-            onClick={handleExportPdf}
-            disabled={loading.pdf}
-            className="w-30 h-10 bg-gradient-to-r from-white to-[#9E0C1B] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25),_0_4px_4px_0_rgba(0,0,0,0.25),_0_9.965px_9.675px_0_rgba(15,15,15,0.25)] flex items-center justify-center text-white font-bold gap-2"
-          >
-            <img src={pdfIcon} alt="" />
-            {loading.pdf ? "..." : "PDF"}
-          </Button>
+          <div className="flex items-center justify-center gap-20 w-1/2 mx-auto pb-6">
+            <Button
+              onClick={handleExportExcel}
+              disabled={loading.excel}
+              className="w-30 h-10 bg-gradient-to-r from-white to-[#1E6D41] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25),_0_4px_4px_0_rgba(0,0,0,0.25),_0_9.965px_9.675px_0_rgba(15,15,15,0.25)] flex items-center justify-center text-white font-bold gap-2"
+            >
+              <img src={excelIcon} alt="" />
+              {loading.excel ? "..." : "EXCEL"}
+            </Button>
+            <Button
+              onClick={handleExportPdf}
+              disabled={loading.pdf}
+              className="w-30 h-10 bg-gradient-to-r from-white to-[#9E0C1B] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25),_0_4px_4px_0_rgba(0,0,0,0.25),_0_9.965px_9.675px_0_rgba(15,15,15,0.25)] flex items-center justify-center text-white font-bold gap-2"
+            >
+              <img src={pdfIcon} alt="" />
+              {loading.pdf ? "..." : "PDF"}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

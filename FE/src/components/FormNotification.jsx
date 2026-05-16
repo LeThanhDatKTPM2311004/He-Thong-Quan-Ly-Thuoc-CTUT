@@ -1,11 +1,18 @@
 import CheckIcon from "../assets/svg/CheckIcon";
+import { useNavigate } from "react-router-dom";
 export default function FormNotification({
   type,
   message = "Chào mừng bạn đã đến với hệ thống",
   source = "hệ thống",
   dateTime = "11:00 23/05/2025",
   typeText = "Đăng nhập thành công !",
+  batchId,
 }) {
+  const navigate = useNavigate();
+
+  const handleViewDetail = () => {
+    navigate("/medicine", { state: { searchBatch: batchId } });
+  };
   const typeConfig = {
     success: {
       icon: <CheckIcon />,
@@ -48,7 +55,7 @@ export default function FormNotification({
               {typeConfig[type]?.text}
             </span>
           </div>
-          <p className="text-[#666666] italic font-medium">
+          <p className="text-[#666666] italic font-medium text-xs">
             {message} - từ {source} lúc {dateTime}
           </p>
         </div>
@@ -71,7 +78,7 @@ export default function FormNotification({
               {typeConfig[type]?.text}
             </span>
           </div>
-          <p className="text-[#666666] italic font-medium">
+          <p className="text-[#666666] italic font-medium text-xs">
             {message} - từ {source} lúc {dateTime}
           </p>
         </div>
@@ -94,11 +101,14 @@ export default function FormNotification({
               {typeConfig[type]?.text}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-10">
+          <div className="flex items-center justify-between gap-10 text-xs">
             <p className="text-[#666666] italic font-medium">
               {message} - từ {source} lúc {dateTime}
             </p>
-            <p className="text-blue-500 underline cursor-pointer font-bold">
+            <p
+              onClick={handleViewDetail}
+              className="text-blue-500 underline cursor-pointer font-bold"
+            >
               Xem chi tiết
             </p>
           </div>

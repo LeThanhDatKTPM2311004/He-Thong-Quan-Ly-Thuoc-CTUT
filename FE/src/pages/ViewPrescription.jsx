@@ -65,7 +65,7 @@ export default function ViewPrescription() {
   if (!prescriptionData) return null;
 
   const initialData = {
-    doctorName: prescriptionData.doctorName ?? "",
+    doctorName: prescriptionData.medicalStaff ?? "", // ← dùng medicalStaff
     shift: prescriptionData.shift ?? "",
     startTime: prescriptionData.createdAt
       ? new Date(prescriptionData.createdAt).toLocaleString("vi-VN")

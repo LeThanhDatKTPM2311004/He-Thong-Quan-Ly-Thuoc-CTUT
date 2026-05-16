@@ -6,49 +6,45 @@ import Button from "../components/Button.jsx";
 import Logout from "../assets/svg/LogoutIcon.jsx";
 import Table from "../components/Table/Table.jsx";
 import FormChangePass from "../components/FormChangePass.jsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getProfile, getLoginHistory } from "../services/profileService";
 
 export default function Personal() {
   const columns = [
-    { key: "time", label: "Thời gian", align: "left" },
-    { key: "name", label: "Tên thiết bị", align: "left" },
+    { key: "loginTime", label: "Thời gian", align: "left" },
+    // { key: "deviceName", label: "Tên thiết bị", align: "left" },
     { key: "status", label: "Trạng thái", align: "left" },
   ];
 
-  const data = [
-    {
-      time: "10:00 AM 21/11/2023",
-      name: "Thiết bị A",
-      status: "success",
-    },
-    {
-      time: "11:30 AM 21/11/2023",
-      name: "Thiết bị B",
-      status: "failed",
-    },
-    {
-      time: "10:00 AM 21/11/2023",
-      name: "Thiết bị A",
-      status: "success",
-    },
-    {
-      time: "11:30 AM 21/11/2023",
-      name: "Thiết bị B",
-      status: "failed",
-    },
-    {
-      time: "10:00 AM 21/11/2023",
-      name: "Thiết bị A",
-      status: "success",
-    },
-    {
-      time: "11:30 AM 21/11/2023",
-      name: "Thiết bị B",
-      status: "failed",
-    },
-  ];
-
+  const [profile, setProfile] = useState(null);
+  const [loginHistory, setLoginHistory] = useState([]);
   const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
+
+  useEffect(() => {
+    // Lấy thông tin cá nhân
+    getProfile()
+      .then((res) => setProfile(res?.data ?? res))
+      .catch((err) => console.error("Lỗi lấy profile:", err));
+
+    // Lấy lịch sử đăng nhập
+    getLoginHistory()
+      .then((res) => {
+        const list = Array.isArray(res) ? res : (res?.data ?? []);
+        // Format loginTime cho đẹp
+        setLoginHistory(
+          list.map((item) => ({
+            ...item,
+            loginTime: item.loginTime
+              ? new Date(item.loginTime).toLocaleString("vi-VN")
+              : "—",
+            // Table component nhận "success" / "failed" (lowercase)
+            status:
+              item.status?.toLowerCase() === "success" ? "success" : "failed",
+          })),
+        );
+      })
+      .catch((err) => console.error("Lỗi lấy lịch sử đăng nhập:", err));
+  }, []);
 
   return (
     <div className="w-3/4 bg-white absolute top-20 left-105 h-5/6 rounded-2xl shadow-xl">
@@ -56,16 +52,22 @@ export default function Personal() {
         <div className="flex items-center justify-center gap-5">
           <img src={avatar} alt="Avatar" />
           <div className="flex flex-col justify-center gap-2">
-            <p className="font-bold text-3xl">Ronaldo Tín</p>
+            <p className="font-bold text-3xl">
+              {profile?.fullname ?? "Đang tải..."}
+            </p>
             <div className="flex items-center justify-center gap-3 text-white border border-1 border-black w-42 bg-[#274681] px-2 py-1 rounded-2xl">
               <MailIcon />
-              <p className="text-white font-bold text-sm">Nhân viên y tế</p>
+              <p className="text-white font-bold text-sm">
+                {profile?.role ?? "Nhân viên y tế"}
+              </p>
             </div>
             <div className="flex items-center justify-center text-[10px] mr-15">
               <img src={avatarsmall} alt="Avatar Small" />
               <label>
-                <p className="text-black">Tên đăng nhập:Tindao2311</p>
-                <p className="text-black">Email: tindao@gmail.com</p>
+                <p className="text-black">
+                  Tên đăng nhập: {profile?.username ?? "—"}
+                </p>
+                <p className="text-black">Email: {profile?.email ?? "—"}</p>
               </label>
             </div>
           </div>
@@ -89,14 +91,22 @@ export default function Personal() {
           </Button>
         </div>
       </div>
+
       <div className="w-5/6 bg-white absolute left-25 bottom-2 h-3/5 rounded-2xl shadow-xl">
         <h1 className="text-black text-center font-bold text-2xl pt-5 pb-1">
           LỊCH SỬ ĐĂNG NHẬP
         </h1>
         <div className="overflow-y-auto max-h-[400px] p-5">
-          <Table columns={columns} data={data} type="personal" />
+          {loginHistory.length === 0 ? (
+            <p className="text-center text-gray-400 text-sm pt-5">
+              Chưa có lịch sử đăng nhập.
+            </p>
+          ) : (
+            <Table columns={columns} data={loginHistory} type="personal" />
+          )}
         </div>
       </div>
+
       <FormChangePass
         isVisible={showChangePasswordForm}
         onClose={() => setShowChangePasswordForm(false)}
