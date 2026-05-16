@@ -1,0 +1,10 @@
+@import "tailwindcss";
+body {
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+}
+.black-ops-one {
+  font-family: "Black Ops One", sans-serif;
+}
+.inter {
+  font-family: "Inter", sans-serif;
+}
