@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import FormLogin from "../components/FormLogin.jsx";
-import AuthLayout from "../layouts/authLayout.jsx";
+import AuthLayout from "../layouts/AuthLayout.jsx";
 import { isAuthenticated } from "../services/authService";
 import { useEffect } from "react";
 
