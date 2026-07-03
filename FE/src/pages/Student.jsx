@@ -132,54 +132,60 @@ export default function Account() {
   };
 
   return (
-    <div className="w-3/4 bg-white absolute top-20 left-105 max-h-5/6 rounded-2xl shadow-xl flex items-center flex-col overflow-y-auto">
-      <h1 className="text-black text-center font-bold text-2xl pt-10 pb-3">
-        NHẬP DỮ LIỆU SINH VIÊN
-      </h1>
-      <h2 className="text-center font-bold pt-10">Tải lên file excel</h2>
-      <p className="text-center">👇</p>
-      <div className="flex items-center justify-center w-1/2 rounded-2xl border border-dashed border-1.5 border-[#1E6D41] h-30 p-10 bg-white">
-        <Button className="rounded-md w-80 h-10 text-sm font-bold text-white bg-[linear-gradient(90deg,_#FFF_0%,_#1E6D41_57.21%)] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25),_0_4px_4px_0_rgba(0,0,0,0.25),_0_9.965px_9.675px_0_rgba(15,15,15,0.25)] flex items-center justify-center gap-5">
-          <img src={excelIcon} alt="excelIcon" />
-          <label htmlFor="import">
-            {loading ? "ĐANG NHẬP..." : "NHẬP DỮ LIỆU TỪ FILE EXCEL"}
-          </label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            name="import"
-            id="import"
-            accept=".xlsx,.xls"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-        </Button>
-      </div>
+    <div
+      style={{ padding: "30px" }}
+      className="w-full h-9/10 flex flex-col min-h-0"
+    >
+      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col items-center overflow-y-auto">
+        <h1 className="text-black text-center font-bold text-2xl pt-10 pb-3 flex-shrink-0">
+          NHẬP DỮ LIỆU SINH VIÊN
+        </h1>
+        <h2 className="text-center font-bold pt-6">Tải lên file excel</h2>
+        <p className="text-center">👇</p>
 
-      {/* Trạng thái import */}
-      <ImportStatus
-        status={importStatus}
-        fileName={importedFileName}
-        onDismiss={() => setImportStatus(null)}
-      />
+        {/* Khu vực upload — Upload area */}
+        <div className="flex items-center justify-center w-1/2 rounded-2xl border border-dashed border-[#1E6D41] h-30 p-10 bg-white">
+          <Button className="rounded-md w-80 h-10 text-sm font-bold text-white bg-[linear-gradient(90deg,_#FFF_0%,_#1E6D41_57.21%)] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25)] flex items-center justify-center gap-5">
+            <img src={excelIcon} alt="excelIcon" />
+            <label htmlFor="import">
+              {loading ? "ĐANG NHẬP..." : "NHẬP DỮ LIỆU TỪ FILE EXCEL"}
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="import"
+              id="import"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </Button>
+        </div>
 
-      {/* Danh sách lớp đổ từ API */}
-      <div className="flex items-center justify-center p-10 w-2/3 gap-5">
-        {loadingStudents ? (
-          <p className="text-gray-400 text-sm">Đang tải danh sách lớp...</p>
-        ) : classes.length === 0 ? (
-          <p className="text-gray-400 text-sm">Chưa có dữ liệu sinh viên.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-5">
-            {classes.map((classItem) => (
-              <ClassCard
-                key={classItem.id}
-                className={classItem.className}
-                studentCount={classItem.studentCount}
-              />
-            ))}
-          </div>
-        )}
+        <ImportStatus
+          status={importStatus}
+          fileName={importedFileName}
+          onDismiss={() => setImportStatus(null)}
+        />
+
+        {/* Danh sách lớp — Class list */}
+        <div className="flex items-center justify-center p-10 w-2/3">
+          {loadingStudents ? (
+            <p className="text-gray-400 text-sm">Đang tải danh sách lớp...</p>
+          ) : classes.length === 0 ? (
+            <p className="text-gray-400 text-sm">Chưa có dữ liệu sinh viên.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-5">
+              {classes.map((classItem) => (
+                <ClassCard
+                  key={classItem.id}
+                  className={classItem.className}
+                  studentCount={classItem.studentCount}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

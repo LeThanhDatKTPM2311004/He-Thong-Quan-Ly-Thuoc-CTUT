@@ -82,71 +82,85 @@ export default function MedicineReport() {
   };
 
   return (
-    <div className="w-3/4 bg-white absolute top-20 left-105 h-5/6 rounded-2xl shadow-xl overflow-y-auto">
-      <div className="flex flex-col px-5 pt-1 justify-center text-black text-xs">
-        <div className="cursor-pointer" onClick={() => navigate(-1)}>
+    /* Wrapper co dãn — Responsive wrapper */
+    <div
+      style={{ padding: "30px" }}
+      className="w-full h-9/10 flex flex-col min-h-0"
+    >
+      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col overflow-y-auto">
+        {/* Nút trở về — Back button */}
+        <div
+          className="flex flex-col px-5 pt-3 text-black text-xs cursor-pointer flex-shrink-0"
+          onClick={() => navigate(-1)}
+        >
           <BackIcon />
           <p>Trở về</p>
         </div>
-      </div>
-      <Title
-        title="XUẤT BÁO CÁO"
-        subtitle="DANH SÁCH THUỐC"
-        wrapperClass="text-center mb-5"
-        titleClass="text-3xl font-bold"
-        subtitleClass="text-xs"
-      />
-      <FillTime
-        defaultFrom={dateRange.from}
-        defaultTo={dateRange.to}
-        onChange={(range) => {
-          setDateRange(range);
-          setHasFiltered(true);
-          handlePreview(range); // ← tự động load preview luôn
-        }}
-      />
 
-      {error && (
-        <p className="text-red-500 text-sm text-center mt-2">{error}</p>
-      )}
+        <Title
+          title="XUẤT BÁO CÁO"
+          subtitle="DANH SÁCH THUỐC"
+          wrapperClass="text-center mb-5 flex-shrink-0"
+          titleClass="text-3xl font-bold"
+          subtitleClass="text-xs"
+        />
 
-      {/* Chỉ hiện preview + nút xuất sau khi người dùng thao tác filter */}
-      {hasFiltered && (
-        <div className="relative mt-4">
-          <div className="relative mx-auto w-160 mb-5">
-            {loading.preview ? (
-              <div className="w-full h-96 flex items-center justify-center text-gray-400 text-sm">
-                Đang tải xem trước...
-              </div>
-            ) : pdfPreviewUrl ? (
-              <iframe
-                src={pdfPreviewUrl}
-                className="w-full h-96 rounded border border-gray-200"
-                title="PDF Preview"
-              />
-            ) : null}
-          </div>
-
-          <div className="flex items-center justify-center gap-20 w-1/2 mx-auto pb-6">
-            <Button
-              onClick={handleExportExcel}
-              disabled={loading.excel}
-              className="w-30 h-10 bg-gradient-to-r from-white to-[#1E6D41] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25),_0_4px_4px_0_rgba(0,0,0,0.25),_0_9.965px_9.675px_0_rgba(15,15,15,0.25)] flex items-center justify-center text-white font-bold gap-2"
-            >
-              <img src={excelIcon} alt="" />
-              {loading.excel ? "..." : "EXCEL"}
-            </Button>
-            <Button
-              onClick={handleExportPdf}
-              disabled={loading.pdf}
-              className="w-30 h-10 bg-gradient-to-r from-white to-[#9E0C1B] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25),_0_4px_4px_0_rgba(0,0,0,0.25),_0_9.965px_9.675px_0_rgba(15,15,15,0.25)] flex items-center justify-center text-white font-bold gap-2"
-            >
-              <img src={pdfIcon} alt="" />
-              {loading.pdf ? "..." : "PDF"}
-            </Button>
-          </div>
+        <div className="flex-shrink-0 px-8">
+          <FillTime
+            defaultFrom={dateRange.from}
+            defaultTo={dateRange.to}
+            onChange={(range) => {
+              setDateRange(range);
+              setHasFiltered(true);
+              handlePreview(range);
+            }}
+          />
         </div>
-      )}
+
+        {error && (
+          <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+        )}
+
+        {/* Chỉ hiện sau khi filter — Show only after filter applied */}
+        {hasFiltered && (
+          <div className="flex flex-col items-center gap-4 px-8 py-4 flex-1 min-h-0">
+            {/* Preview PDF — PDF preview area */}
+            <div className="w-full max-w-5xl">
+              {loading.preview ? (
+                <div className="w-full flex items-center justify-center text-gray-400 text-sm">
+                  Đang tải xem trước...
+                </div>
+              ) : pdfPreviewUrl ? (
+                <iframe
+                  src={pdfPreviewUrl}
+                  className="w-full h-110 rounded border border-gray-200"
+                  title="PDF Preview"
+                />
+              ) : null}
+            </div>
+
+            {/* Nút xuất file — Export buttons */}
+            <div className="flex items-center justify-center gap-16 pb-6">
+              <Button
+                onClick={handleExportExcel}
+                disabled={loading.excel}
+                className="w-30 h-10 bg-gradient-to-r from-white to-[#1E6D41] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25)] flex items-center justify-center text-white font-bold gap-2"
+              >
+                <img src={excelIcon} alt="" />
+                {loading.excel ? "..." : "EXCEL"}
+              </Button>
+              <Button
+                onClick={handleExportPdf}
+                disabled={loading.pdf}
+                className="w-30 h-10 bg-gradient-to-r from-white to-[#9E0C1B] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25)] flex items-center justify-center text-white font-bold gap-2"
+              >
+                <img src={pdfIcon} alt="" />
+                {loading.pdf ? "..." : "PDF"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

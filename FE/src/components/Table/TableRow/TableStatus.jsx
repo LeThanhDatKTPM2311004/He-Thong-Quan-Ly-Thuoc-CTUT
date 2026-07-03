@@ -45,24 +45,24 @@ export default function TableStatus({ status }) {
   return (
     <>
       {(status === "active" || status === "inactive") && (
-        <span className={`py-1 text-xs font-bold ${config.text} `}>
+        <span className={`py-1 text-sm font-bold ${config.text} `}>
           {config.label}
         </span>
       )}
       {(status === "imp" || status === "exp") && (
-        <span className={`py-1 text-xs font-bold ${config.text} `}>
+        <span className={`py-1 text-sm font-bold ${config.text} `}>
           {config.label}
         </span>
       )}
       {(status === "waiting" ||
         status === "completed" ||
         status === "dispensed") && (
-        <span className={`py-1 text-xs font-bold ${config.color} `}>
+        <span className={`py-1 text-sm font-bold ${config.color} `}>
           {config.label}
         </span>
       )}
       {status === "success" && (
-        <div className="w-35 h-8 flex items-center justify-center gap-2 py-2 rounded-full shadow-2xl bg-[linear-gradient(90deg,#3AD37E_34.13%,#1E6D41_98.56%)] text-white font-bold text-xs">
+        <div className="w-35 h-8 flex items-center justify-center gap-2 py-2 rounded-full shadow-2xl bg-[linear-gradient(90deg,#3AD37E_34.13%,#1E6D41_98.56%)] text-white font-bold text-sm">
           <span className="w-6 h-6 flex items-center justify-center bg-green-700 shadow-[2px_3px_10px_rgba(0,0,0,0.9)] rounded-full p-1">
             <CheckIcon />
           </span>
@@ -70,7 +70,7 @@ export default function TableStatus({ status }) {
         </div>
       )}
       {status === "failed" && (
-        <div className="w-35 h-8  flex items-center justify-center gap-2 pr-5 py-2 rounded-full shadow-2xl bg-[linear-gradient(90deg,#FF5252_34.13%,#B11010_98.56%)] text-white font-bold text-xs">
+        <div className="w-35 h-8  flex items-center justify-center gap-2 pr-5 py-2 rounded-full shadow-2xl bg-[linear-gradient(90deg,#FF5252_34.13%,#B11010_98.56%)] text-white font-bold text-sm">
           <span className="w-6 h-6 flex items-center justify-center bg-red-700 shadow-[2px_3px_10px_rgba(0,0,0,0.9)] rounded-full p-1">
             <CancelIcon />
           </span>

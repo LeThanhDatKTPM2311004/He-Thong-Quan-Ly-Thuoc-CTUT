@@ -31,26 +31,31 @@ export default function Notification() {
   };
 
   return (
-    <div className="w-3/4 bg-white absolute top-20 left-105 h-5/6 rounded-2xl shadow-xl flex flex-col gap-5 py-20 pl-30 pr-50">
-      <h1 className="text-lg font-bold">Thông báo</h1>
-      <div className="overflow-y-auto max-h-95%">
-        {loading ? (
-          <p className="text-gray-400 italic">Đang tải thông báo...</p>
-        ) : notifications.length === 0 ? (
-          <p className="text-gray-400 italic">Không có thông báo nào.</p>
-        ) : (
-          notifications.map((noti) => (
-            <FormNotification
-              key={noti.id}
-              type={noti.type.toLowerCase()} // ← thêm .toLowerCase()
-              typeText={noti.title}
-              message={noti.message}
-              dateTime={formatDateTime(noti.createdAt)}
-              source="hệ thống"
-              batchId={noti.batchId}
-            />
-          ))
-        )}
+    <div
+      style={{ padding: "30px" }}
+      className="w-full h-9/10 flex flex-col min-h-0"
+    >
+      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col px-10 py-8">
+        <h1 className="text-lg font-bold flex-shrink-0 mb-4">Thông báo</h1>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {loading ? (
+            <p className="text-gray-400 italic">Đang tải thông báo...</p>
+          ) : notifications.length === 0 ? (
+            <p className="text-gray-400 italic">Không có thông báo nào.</p>
+          ) : (
+            notifications.map((noti) => (
+              <FormNotification
+                key={noti.id}
+                type={noti.type.toLowerCase()}
+                typeText={noti.title}
+                message={noti.message}
+                dateTime={formatDateTime(noti.createdAt)}
+                source="hệ thống"
+                batchId={noti.batchId}
+              />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

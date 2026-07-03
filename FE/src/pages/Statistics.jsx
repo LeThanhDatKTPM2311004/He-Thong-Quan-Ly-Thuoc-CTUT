@@ -670,32 +670,39 @@ export default function Statistics() {
     : { total: 0, unit: "Ca", comparedToPrevious: 0, trend: "down" };
 
   return (
-    <>
-      <div className="w-3/4 bg-white absolute top-20 left-105 rounded-2xl shadow-xl flex flex-col items-center gap-5 overflow-y-auto max-h-5/6">
-        <h1 className="text-3xl font-bold pb-5 pt-10">SỐ LIỆU THỐNG KÊ</h1>
+    <div
+      style={{ padding: "30px" }}
+      className="w-full h-9/10 flex flex-col min-h-0"
+    >
+      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col overflow-y-auto">
+        <h1 className="text-3xl font-bold text-center pb-5 pt-10 flex-shrink-0">
+          SỐ LIỆU THỐNG KÊ
+        </h1>
         <div
           style={styles.wrapper}
-          className="w-full px-20 py-5 flex items-center justify-between"
+          className="w-full px-10 py-5 flex items-center justify-between flex-shrink-0"
         >
           <MedicineCard data={medicineCardData} />
           <DiseaseCard data={diseaseCardData} />
           <CasesCard data={casesCardData} />
         </div>
-        <FillTime
-          label="Tải số liệu theo thời gian tùy chỉnh:"
-          button="Xác nhận lọc"
-          onChange={handleFilter}
-        />
-        <div className="w-full">
+        <div className="flex-shrink-0 px-8">
+          <FillTime
+            label="Tải số liệu theo thời gian tùy chỉnh:"
+            button="Xác nhận lọc"
+            onChange={handleFilter}
+          />
+        </div>
+        <div className="w-full flex-shrink-0">
           <MedicineChart
             importExportData={importExportData}
             dateRange={dateRange}
           />
         </div>
-        <div className="w-full p-5">
+        <div className="w-full flex-shrink-0 p-5">
           <MedicineExpiryChart expiryData={expiryData} />
         </div>
       </div>
-    </>
+    </div>
   );
 }

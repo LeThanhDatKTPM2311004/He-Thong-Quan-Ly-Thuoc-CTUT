@@ -3,7 +3,7 @@ export default function TableHeader({ columns }) {
     return columns.length >= 8 ? "px-1" : "px-4";
   };
   return (
-    <tr className="bg-[#F9FAFB] text-sm text-[#B5B7C0]">
+    <tr className="bg-[#F9FAFB] text-[#B5B7C0]">
       {columns.map((col, index) => (
         <th
           key={index}

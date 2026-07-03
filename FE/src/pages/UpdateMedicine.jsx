@@ -85,46 +85,48 @@ export default function UpdateMedicine() {
     return <p className="text-center mt-20 text-gray-400">Đang tải...</p>;
 
   return (
-    <div className="w-6/9 bg-white absolute top-20 left-125 h-1/2 rounded-2xl shadow-xl flex flex-col items-center justify-center gap-10">
-      <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3 w-full">
-        CẬP NHẬT THÔNG TIN THUỐC
-      </h1>
-      <div className="w-2/3 mx-auto">
-        <FormMedicine
-          fields={fields}
-          initialData={initialData}
-          onChange={(data) => setFormData(data)}
-          variant="primary"
-          readOnly={false}
-        />
-      </div>
+    <div className="w-full h-full flex items-center justify-center p-8">
+      <div className="w-[70%] min-h-[55%] bg-white rounded-2xl shadow-xl flex flex-col items-center justify-center gap-10">
+        <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3 w-full">
+          CẬP NHẬT THÔNG TIN THUỐC
+        </h1>
+        <div className="w-2/3 mx-auto">
+          <FormMedicine
+            fields={fields}
+            initialData={initialData}
+            onChange={(data) => setFormData(data)}
+            variant="primary"
+            readOnly={false}
+          />
+        </div>
 
-      {error && (
-        <p className="text-red-500 text-sm text-center -mt-5">{error}</p>
-      )}
+        {error && (
+          <p className="text-red-500 text-sm text-center -mt-5">{error}</p>
+        )}
 
-      <div className="flex items-center justify-center gap-16 font-bold text-white">
-        <Button
-          className="bg-[#951010] hover:bg-red-600 w-30 h-10"
-          onClick={() => navigate("/medicine")}
-          disabled={submitting}
-        >
-          HỦY BỎ
-        </Button>
-        <Button
-          className="bg-[#268037] hover:bg-green-600 w-30 h-10 flex items-center justify-center gap-2"
-          onClick={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Đang lưu...
-            </>
-          ) : (
-            "HOÀN TẤT"
-          )}
-        </Button>
+        <div className="flex items-center justify-center gap-16 font-bold text-white">
+          <Button
+            className="bg-[#951010] hover:bg-red-600 w-40 h-10"
+            onClick={() => navigate("/medicine")}
+            disabled={submitting}
+          >
+            HỦY BỎ
+          </Button>
+          <Button
+            className="bg-[#268037] hover:bg-green-600 w-40 h-10 flex items-center justify-center gap-2"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Đang lưu...
+              </>
+            ) : (
+              "HOÀN TẤT"
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

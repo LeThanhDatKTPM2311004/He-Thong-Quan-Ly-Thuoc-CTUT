@@ -15,7 +15,7 @@ const MENU_ITEMS = [
     icon: AccountIcon,
     label: "Quản lí tài khoản",
     path: "/account",
-    roles: ["ADMIN"], // chỉ ADMIN thấy
+    roles: ["ADMIN"],
   },
   {
     icon: PersonInfoIcon,
@@ -60,7 +60,7 @@ function MenuItem({ icon, label, isActive, onClick }) {
   return (
     <span
       onClick={onClick}
-      className={`flex w-3/4 items-center p-2 rounded-xl cursor-pointer
+      className={`flex w-full items-center px-4 py-2 rounded-xl cursor-pointer
         transition-all duration-300 ease-in-out
         hover:bg-[#264580]/20 hover:text-[#264580] hover:translate-x-1
         ${
@@ -91,11 +91,15 @@ export default function SideBar() {
     getRole();
   }, []);
 
-  // Lọc menu theo role
   const visibleItems = MENU_ITEMS.filter((item) => item.roles.includes(role));
 
   return (
-    <div className="w-full flex flex-col gap-3 mt-15 text-[#9197B3] items-center justify-center text-xs cursor-pointer">
+    /*
+      Bỏ items-center justify-center — items bám trái tự nhiên
+      Remove centering — items align to left naturally
+      px-3 tạo khoảng thở nhỏ hai bên — px-3 gives slight side breathing room
+    */
+    <div className="w-full flex flex-col gap-3 mt-15 text-[#9197B3] font-medium px-3">
       {visibleItems.map((item, index) => (
         <MenuItem
           key={index}

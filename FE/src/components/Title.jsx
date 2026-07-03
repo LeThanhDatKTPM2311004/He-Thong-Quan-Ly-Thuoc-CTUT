@@ -2,8 +2,8 @@ export default function Title({
   title,
   subtitle,
   wrapperClass = "flex flex-col text-black ml-3",
-  titleClass = "text-sm font-bold",
-  subtitleClass = "text-[6px] italic",
+  titleClass = " font-bold",
+  subtitleClass = "text-xs italic",
 }) {
   return (
     <div className={wrapperClass}>

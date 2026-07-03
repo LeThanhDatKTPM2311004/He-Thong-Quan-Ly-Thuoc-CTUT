@@ -14,11 +14,11 @@ export default function Account() {
   const navigate = useNavigate();
   const columns = [
     { key: "stt", label: "STT", align: "center" },
-    { key: "username", label: "Tên đăng nhập", align: "left" },
-    { key: "name", label: "Tên người dùng", align: "left" },
-    { key: "email", label: "Email", align: "left" },
-    { key: "role", label: "Vai trò", align: "left" },
-    { key: "status", label: "Trạng thái", align: "left" },
+    { key: "username", label: "TÊN ĐĂNG NHẬP", align: "left" },
+    { key: "name", label: "TÊN NGƯỜI DÙNG", align: "left" },
+    { key: "email", label: "EMAIL", align: "left" },
+    { key: "role", label: "VAI TRÒ", align: "left" },
+    { key: "status", label: "TRẠNG THÁI", align: "left" },
     { key: "action", label: "THAO TÁC", align: "left" },
   ];
 
@@ -29,11 +29,13 @@ export default function Account() {
   const [error, setError] = useState("");
   const [pagination, setPagination] = useState({
     page: 0,
-    size: 10,
+    size: 8,
     totalPages: 0,
     totalElements: 0,
   });
   const [selectedAccountId, setSelectedAccountId] = useState(null);
+  const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
+
   const fetchAccounts = async (page = 0, kw = "") => {
     setLoading(true);
     setError("");
@@ -44,14 +46,12 @@ export default function Account() {
         sortDir: "desc",
         keyword: kw,
       });
-
       const mapped = res.content.map((item, index) => ({
         ...item,
         name: item.fullname,
         status: item.status === "Đang sử dụng" ? "active" : "inactive",
         stt: page * pagination.size + index + 1,
       }));
-
       setData(mapped);
       setPagination((prev) => ({
         ...prev,
@@ -73,95 +73,104 @@ export default function Account() {
   const handleEdit = (row) => {
     navigate("/account/update", { state: { id: row.id } });
   };
-
   const handleResetPassword = (row) => {
     setSelectedAccountId(row.id);
     setShowChangePasswordForm(true);
   };
-
   const handleLock = async (row) => {
     try {
       await lockAccount(row.id);
-      // Refresh lại trang hiện tại sau khi khóa
       fetchAccounts(pagination.page, keyword ?? "");
     } catch (err) {
       setError(err.message || "Khóa tài khoản thất bại.");
     }
   };
-
   const handleUnlock = async (row) => {
     try {
       await unlockAccount(row.id);
-      // Refresh lại trang hiện tại sau khi mở khóa
       fetchAccounts(pagination.page, keyword ?? "");
     } catch (err) {
       setError(err.message || "Mở khóa tài khoản thất bại.");
     }
   };
 
-  const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
-
   return (
-    <div className="w-3/4 bg-white absolute top-20 left-105 h-5/6 rounded-2xl shadow-xl">
-      <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3">
-        DANH SÁCH TÀI KHOẢN
-      </h1>
-      <Button
-        className="bg-[#CA20A5] h-6 text-xs flex justify-self-end items-center text-white font-bold mr-15"
-        onClick={() => navigate("/account/create")}
-      >
-        <img src={add} alt="Add Icon" className="w-3 h-3 mr-1" />
-        Thêm tài khoản
-      </Button>
+    <div
+      style={{ padding: "30px" }}
+      className="relative w-full h-9/10 flex flex-col min-h-0"
+    >
+      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col">
+        {/* ── Header: title + nút cùng hàng ─────────────────────────── */}
+        <div className="relative flex items-center justify-end px-8 py-5 flex-shrink-0">
+          <h1 className="absolute left-1/2 -translate-x-1/2 text-black font-bold text-2xl tracking-wide">
+            DANH SÁCH TÀI KHOẢN
+          </h1>
 
-      {error && (
-        <p className="text-red-500 text-sm text-center mt-2">{error}</p>
-      )}
+          <Button
+            className="bg-[#CA20A5] h-10 flex items-center text-white font-bold px-4 rounded-lg"
+            onClick={() => navigate("/account/create")}
+          >
+            <img src={add} alt="Add Icon" className="w-3 h-3 mr-1" />
+            Thêm tài khoản
+          </Button>
+        </div>
+        <div className="border-t border-gray-100 flex-shrink-0" />
 
-      {loading ? (
-        <p className="text-center text-gray-400 mt-10">Đang tải...</p>
-      ) : (
-        <div className="overflow-y-auto max-h-[600px] p-5">
-          <Table
-            columns={columns}
-            data={data}
-            type="account"
-            onEdit={handleEdit}
-            onResetPassword={handleResetPassword}
-            onLock={handleLock}
-            onUnlock={handleUnlock}
+        {error && (
+          <p className="text-red-500 text-sm text-center px-8 pt-2">{error}</p>
+        )}
+
+        {loading ? (
+          <p className="text-center text-gray-400 mt-10">Đang tải...</p>
+        ) : (
+          <div className="flex-1 min-h-0 overflow-y-auto px-8 py-4">
+            <Table
+              columns={columns}
+              data={data}
+              type="account"
+              onEdit={handleEdit}
+              onResetPassword={handleResetPassword}
+              onLock={handleLock}
+              onUnlock={handleUnlock}
+            />
+          </div>
+        )}
+
+        {/* ── Pagination: ghim đáy card ───────────────────────────────── */}
+        {/* Pinned to card bottom — Cố định ở đáy card */}
+        {!loading && pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-3 py-10 flex-shrink-0 border-t border-gray-100">
+            <button
+              disabled={pagination.page === 0}
+              onClick={() => fetchAccounts(pagination.page - 1, keyword ?? "")}
+              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
+            >
+              &laquo; Trước
+            </button>
+            <span className="text-sm text-gray-600">
+              Trang {pagination.page + 1} / {pagination.totalPages}
+            </span>
+            <button
+              disabled={pagination.page + 1 >= pagination.totalPages}
+              onClick={() => fetchAccounts(pagination.page + 1, keyword ?? "")}
+              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
+            >
+              Tiếp &raquo;
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+        <div className="pointer-events-auto">
+          <FormChangePass
+            isVisible={showChangePasswordForm}
+            onClose={() => setShowChangePasswordForm(false)}
+            showCurrentPassword={false}
+            accountId={selectedAccountId}
           />
         </div>
-      )}
-
-      {!loading && pagination.totalPages > 1 && (
-        <div className="flex justify-center items-center gap-3 pb-4">
-          <button
-            disabled={pagination.page === 0}
-            onClick={() => fetchAccounts(pagination.page - 1, keyword ?? "")}
-            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
-          >
-            &laquo; Trước
-          </button>
-          <span className="text-sm text-gray-600">
-            Trang {pagination.page + 1} / {pagination.totalPages}
-          </span>
-          <button
-            disabled={pagination.page + 1 >= pagination.totalPages}
-            onClick={() => fetchAccounts(pagination.page + 1, keyword ?? "")}
-            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
-          >
-            Tiếp &raquo;
-          </button>
-        </div>
-      )}
-
-      <FormChangePass
-        isVisible={showChangePasswordForm}
-        onClose={() => setShowChangePasswordForm(false)}
-        showCurrentPassword={false}
-        accountId={selectedAccountId}
-      />
+      </div>
     </div>
   );
 }

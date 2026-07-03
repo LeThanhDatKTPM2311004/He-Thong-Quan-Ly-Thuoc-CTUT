@@ -87,9 +87,7 @@ export default function ViewPrescription() {
   return (
     <>
       {error && (
-        <p className="text-red-500 text-sm text-center mt-2 absolute top-16 left-1/2 -translate-x-1/2 z-50">
-          {error}
-        </p>
+        <p className="text-red-500 text-sm text-center mt-2">{error}</p>
       )}
       <FormPrescription
         key={prescriptionCode}

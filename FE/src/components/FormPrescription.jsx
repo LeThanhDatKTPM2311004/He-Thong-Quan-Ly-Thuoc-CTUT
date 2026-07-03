@@ -94,11 +94,14 @@ export default function FormPrescription({
   // Realtime auto-fill thông tin sinh viên theo MSSV (debounce 400ms)
   useEffect(() => {
     if (isReadOnly) return;
-    if (!studentId.trim()) return;
+    if (!isCreateMode && !isEditing) return; // ← thêm dòng này
+
+    const trimmed = studentId.trim();
+    if (!trimmed) return;
 
     const timer = setTimeout(async () => {
       try {
-        const res = await getStudentByCode(studentId.trim());
+        const res = await getStudentByCode(trimmed);
         if (res) {
           setFullname(res.fullName ?? "");
           setClassCode(res.classCode ?? "");
@@ -116,7 +119,7 @@ export default function FormPrescription({
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [studentId, isReadOnly]);
+  }, [studentId, isReadOnly, isCreateMode, isEditing]);
 
   const validate = () => {
     const newErrors = {};
@@ -205,14 +208,24 @@ export default function FormPrescription({
 
   const handleSaveChanges = () => {
     if (!validate()) return;
-    onSave({ studentCode: studentId, diagnosis, note: notes, medicines });
+    onSave({
+      studentCode: studentId.trim(),
+      diagnosis,
+      note: notes,
+      medicines,
+    }); // ← .trim()
     setIsEditing(false);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    onSave({ studentCode: studentId, diagnosis, note: notes, medicines });
+    onSave({
+      studentCode: studentId.trim(),
+      diagnosis,
+      note: notes,
+      medicines,
+    }); // ← .trim()
   };
 
   const handleCancel = () => {
@@ -240,237 +253,252 @@ export default function FormPrescription({
 
   return (
     <>
-      <div className="w-3/4 bg-white absolute top-18 left-105 h-[90%] rounded-2xl shadow-xl overflow-y-auto">
-        <div className="flex items-center justify-between py-2 px-5">
-          <div className="flex flex-col justify-center">
-            <h2 className="text-sm font-bold text-[#264580]">
-              Cán bộ y tế: {initialData.doctorName || "Lê Thành Đạt"}
-            </h2>
+      {/* Wrapper co dãn — Responsive wrapper */}
+      <div
+        style={{ padding: "30px" }}
+        className="w-full h-9/10 flex flex-col min-h-0 relative"
+      >
+        <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl overflow-y-auto">
+          {/* Header: cán bộ y tế + thời gian — Staff info header */}
+          <div className="flex items-center justify-between py-2 px-5 flex-shrink-0">
+            <div className="flex flex-col justify-center">
+              <h2 className="text-sm font-bold text-[#264580]">
+                Cán bộ y tế: {initialData.doctorName || "Lê Thành Đạt"}
+              </h2>
+              <p className="text-xs italic">
+                Ca trực : {initialData.shift || "sáng 12/01/2026"}
+              </p>
+            </div>
             <p className="text-xs italic">
-              Ca trực : {initialData.shift || "sáng 12/01/2026"}
+              Thời gian bắt đầu kê đơn:{" "}
+              {initialData.startTime || "14:15 | 12/01/2005"}
             </p>
           </div>
-          <p className="text-xs italic">
-            Thời gian bắt đầu kê đơn:{" "}
-            {initialData.startTime || "14:15 | 12/01/2005"}
-          </p>
-        </div>
-        <h1 className="text-center pt-5 font-bold text-2xl pb-3">
-          PHIẾU KÊ ĐƠN THUỐC
-        </h1>
-        <form
-          className="flex flex-col items-center justify-center gap-3"
-          onSubmit={handleSubmit}
-        >
-          <div className="flex items-center justify-between gap-10 w-9/10 px-18">
-            <div className="w-[55%] bg-[#F7F7F7] rounded-sm p-10 flex flex-col items-center justify-center gap-5 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">
-              <h2 className="font-bold text-sm">👤 THÔNG TIN BỆNH NHÂN</h2>
-              <div className="flex items-center justify-between gap-10 pb-6">
+
+          <h1 className="text-center pt-5 font-bold text-2xl pb-3">
+            PHIẾU KÊ ĐƠN THUỐC
+          </h1>
+
+          <form
+            className="flex flex-col items-center justify-center gap-3 px-8"
+            onSubmit={handleSubmit}
+          >
+            {/* Hàng trên: thông tin bệnh nhân + chẩn đoán — Patient info + diagnosis */}
+            <div className="flex items-start justify-between gap-6 w-full">
+              {/* Thông tin bệnh nhân — Patient info block */}
+              <div className="flex-[55] bg-[#F7F7F7] rounded-sm p-8 flex flex-col items-center gap-5 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">
+                <h2 className="font-bold text-sm">👤 THÔNG TIN BỆNH NHÂN</h2>
+                <div className="flex items-center justify-between gap-6 pb-6 w-full">
+                  <div className="relative shadow-sm flex-1">
+                    <input
+                      type="text"
+                      id="studentId"
+                      placeholder=" "
+                      value={studentId}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setStudentId(val);
+                        setErrors((prev) => ({ ...prev, studentId: "" }));
+                        if (!val.trim()) {
+                          // ← trim ở đây để bắt cả chuỗi toàn dấu cách
+                          setFullname("");
+                          setClassCode("");
+                          setInsurance("");
+                          setStudentError(""); // ← reset lỗi khi input rỗng/toàn dấu cách
+                        }
+                      }}
+                      disabled={isReadOnly}
+                      className={`${inputClass(isReadOnly)} ${
+                        errors.studentId ? "border border-red-400" : ""
+                      }`}
+                    />
+                    <label htmlFor="studentId" className={labelClass}>
+                      MÃ SỐ SINH VIÊN
+                    </label>
+                    {errors.studentId && (
+                      <p className="absolute left-0 -bottom-5 text-red-500 text-[10px] whitespace-nowrap">
+                        {errors.studentId}
+                      </p>
+                    )}
+                  </div>
+                  <div className="relative shadow-sm flex-1">
+                    <input
+                      type="text"
+                      id="fullname"
+                      placeholder=" "
+                      value={fullname}
+                      onChange={(e) => setFullname(e.target.value)}
+                      disabled={isPersonalInfoLocked}
+                      className={inputClass(isPersonalInfoLocked)}
+                    />
+                    <label htmlFor="fullname" className={labelClass}>
+                      HỌ VÀ TÊN
+                    </label>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-6 w-full">
+                  <div className="relative shadow-sm flex-1">
+                    <input
+                      type="text"
+                      id="classCode"
+                      placeholder=" "
+                      value={classCode}
+                      onChange={(e) => setClassCode(e.target.value)}
+                      disabled={isPersonalInfoLocked}
+                      className={inputClass(isPersonalInfoLocked)}
+                    />
+                    <label htmlFor="classCode" className={labelClass}>
+                      MÃ LỚP
+                    </label>
+                  </div>
+                  <div className="relative shadow-sm flex-1">
+                    <input
+                      type="text"
+                      id="insurance"
+                      placeholder=" "
+                      value={insurance}
+                      onChange={(e) => setInsurance(e.target.value)}
+                      disabled={isPersonalInfoLocked}
+                      className={inputClass(isPersonalInfoLocked)}
+                    />
+                    <label htmlFor="insurance" className={labelClass}>
+                      MÃ SỐ BẢO HIỂM Y TẾ
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chẩn đoán — Diagnosis block */}
+              <div className="flex-[40] bg-[#F7F7F7] rounded-sm p-8 flex flex-col items-center gap-5 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">
+                <h2 className="font-bold text-sm">🩺 CHẨN ĐOÁN</h2>
                 <div className="relative shadow-sm w-full">
                   <input
                     type="text"
-                    id="studentId"
+                    id="finalDiagnosis"
                     placeholder=" "
-                    value={studentId}
+                    value={diagnosis}
                     onChange={(e) => {
-                      const val = e.target.value;
-                      setStudentId(val);
-                      setErrors((prev) => ({ ...prev, studentId: "" }));
-                      if (!val.trim()) {
-                        setFullname("");
-                        setClassCode("");
-                        setInsurance("");
-                        setStudentError("");
-                      }
+                      setDiagnosis(e.target.value);
+                      setErrors((prev) => ({ ...prev, diagnosis: "" }));
                     }}
                     disabled={isReadOnly}
                     className={`${inputClass(isReadOnly)} ${
-                      errors.studentId ? "border border-red-400" : ""
+                      errors.diagnosis ? "border border-red-400" : ""
                     }`}
                   />
-                  <label htmlFor="studentId" className={labelClass}>
-                    MÃ SỐ SINH VIÊN
-                  </label>
-                  {errors.studentId && (
-                    <p className="absolute left-0 -bottom-5 text-red-500 text-[10px] whitespace-nowrap">
-                      {errors.studentId}
-                    </p>
-                  )}
-                </div>
-                <div className="relative shadow-sm w-full">
-                  <input
-                    type="text"
-                    id="fullname"
-                    placeholder=" "
-                    value={fullname}
-                    onChange={(e) => setFullname(e.target.value)}
-                    disabled={isPersonalInfoLocked}
-                    className={inputClass(isPersonalInfoLocked)}
-                  />
-                  <label htmlFor="fullname" className={labelClass}>
-                    HỌ VÀ TÊN
+                  <label htmlFor="finalDiagnosis" className={labelClass}>
+                    KẾT LUẬN CHUẨN ĐOÁN
                   </label>
                 </div>
-              </div>
-              <div className="flex items-center justify-between gap-10">
-                <div className="relative shadow-sm w-full">
-                  <input
-                    type="text"
-                    id="classCode"
-                    placeholder=" "
-                    value={classCode}
-                    onChange={(e) => setClassCode(e.target.value)}
-                    disabled={isPersonalInfoLocked}
-                    className={inputClass(isPersonalInfoLocked)}
-                  />
-                  <label htmlFor="classCode" className={labelClass}>
-                    MÃ LỚP
-                  </label>
-                </div>
-                <div className="relative shadow-sm w-full">
-                  <input
-                    type="text"
-                    id="insurance"
-                    placeholder=" "
-                    value={insurance}
-                    onChange={(e) => setInsurance(e.target.value)}
-                    disabled={isPersonalInfoLocked}
-                    className={inputClass(isPersonalInfoLocked)}
-                  />
-                  <label htmlFor="insurance" className={labelClass}>
-                    MÃ SỐ BẢO HIỂM Y TẾ
-                  </label>
-                </div>
+                {errors.diagnosis && (
+                  <p className="text-red-500 text-xs w-full">
+                    {errors.diagnosis}
+                  </p>
+                )}
               </div>
             </div>
-            <div className="w-[40%] bg-[#F7F7F7] rounded-sm p-10 flex flex-col items-center justify-center gap-5 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">
-              <h2 className="font-bold text-sm">🩺 CHẨN ĐOÁN</h2>
-              <div className="relative shadow-sm w-full">
-                <input
-                  type="text"
-                  id="finalDiagnosis"
-                  placeholder=" "
-                  value={diagnosis}
-                  onChange={(e) => {
-                    setDiagnosis(e.target.value);
-                    setErrors((prev) => ({ ...prev, diagnosis: "" }));
-                  }}
-                  disabled={isReadOnly}
-                  className={`${inputClass(isReadOnly)} ${
-                    errors.diagnosis ? "border border-red-400" : ""
-                  }`}
-                />
-                <label htmlFor="finalDiagnosis" className={labelClass}>
-                  KẾT LUẬN CHUẨN ĐOÁN
-                </label>
-              </div>
-              {errors.diagnosis && (
-                <p className="text-red-500 text-xs w-full">
-                  {errors.diagnosis}
-                </p>
+
+            {/* Danh sách thuốc — Medicine list block */}
+            <div className="flex flex-col items-center gap-5 w-full bg-[#F7F7F7] rounded-sm shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)] p-5">
+              <h2 className="font-bold text-sm">💊 ĐƠN THUỐC</h2>
+              {showAddButton && (
+                <Button
+                  type="button"
+                  className="bg-[#264580] h-6 text-xs flex items-center text-white font-bold self-end"
+                  onClick={() => setShowChoose(true)}
+                >
+                  <img src={add} alt="Add Icon" className="w-3 h-3 mr-1" />
+                  Thêm thuốc
+                </Button>
+              )}
+              {medicines.length > 0 && (
+                <div className="w-full flex flex-col gap-3">
+                  {medicines.map((med) => (
+                    <FormListMedicine
+                      key={med.id}
+                      medicine={med}
+                      onQuantityChange={updateQuantity}
+                      onRemove={(id) =>
+                        setMedicines((prev) => prev.filter((m) => m.id !== id))
+                      }
+                      showRemoveButton={showRemoveButton}
+                      isReadOnly={isReadOnly}
+                    />
+                  ))}
+                </div>
+              )}
+              {errors.medicines && (
+                <p className="text-red-500 text-xs">{errors.medicines}</p>
               )}
             </div>
-          </div>
 
-          {/* Danh sách thuốc */}
-          <div className="flex flex-col items-center justify-center gap-5 w-8/10 min-h-50 bg-[#F7F7F7] rounded-sm shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)] p-5">
-            <h2 className="font-bold text-sm">💊 ĐƠN THUỐC</h2>
-            {showAddButton && (
+            {/* Ghi chú — Notes block */}
+            <div className="flex flex-col items-center gap-3 w-full px-8 bg-[#F7F7F7] rounded-sm p-6 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">
+              <h2 className="font-bold text-sm">📝 GHI CHÚ VÀ LỜI DẶN</h2>
+              <input
+                type="text"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                disabled={isReadOnly}
+                className={`outline-none bg-white w-4/5 h-12 px-3 ${
+                  isReadOnly ? "cursor-not-allowed opacity-75" : ""
+                }`}
+              />
+            </div>
+
+            {/* Nút hành động — Action buttons */}
+            <div className="flex items-center justify-center gap-16 pt-5 pb-10">
               <Button
                 type="button"
-                className="bg-[#264580] h-6 text-xs flex justify-self-end items-center text-white font-bold"
-                onClick={() => setShowChoose(true)}
+                className="bg-[#D21013] w-44 h-10 text-sm font-bold text-white shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]"
+                onClick={handleCancel}
               >
-                <img src={add} alt="Add Icon" className="w-3 h-3 mr-1" />
-                Thêm thuốc
+                {getCancelButtonText()}
               </Button>
-            )}
-            {medicines.length > 0 && (
-              <div className="w-full flex flex-col gap-3">
-                {medicines.map((med) => (
-                  <FormListMedicine
-                    key={med.id}
-                    medicine={med}
-                    onQuantityChange={updateQuantity}
-                    onRemove={(id) =>
-                      setMedicines((prev) => prev.filter((m) => m.id !== id))
-                    }
-                    showRemoveButton={showRemoveButton}
-                    isReadOnly={isReadOnly}
-                  />
-                ))}
-              </div>
-            )}
-            {errors.medicines && (
-              <p className="text-red-500 text-xs">{errors.medicines}</p>
-            )}
-          </div>
 
-          {/* Ghi chú */}
-          <div className="flex flex-col items-center justify-center gap-3 w-8/10 h-40 px-20 bg-[#F7F7F7] rounded-sm p-10 shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]">
-            <h2 className="font-bold text-sm">📝 GHI CHÚ VÀ LỜI DẶN</h2>
-            <input
-              type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              disabled={isReadOnly}
-              className={`outline-none bg-white w-4/5 h-15 ${
-                isReadOnly ? "cursor-not-allowed opacity-75" : ""
-              }`}
+              {showCreateButton && (
+                <Button
+                  type="submit"
+                  className="bg-[#14B319] w-44 h-10 text-sm font-bold text-white shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]"
+                >
+                  TẠO ĐƠN THUỐC
+                </Button>
+              )}
+
+              {showEditButton && (
+                <Button
+                  type="button"
+                  className="bg-[#FFA500] w-44 h-10 text-sm font-bold text-white shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]"
+                  onClick={handleEdit}
+                >
+                  SỬA ĐƠN THUỐC
+                </Button>
+              )}
+
+              {showSaveButton && (
+                <Button
+                  type="button"
+                  className="bg-[#14B319] w-44 h-10 text-sm font-bold text-white shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]"
+                  onClick={handleSaveChanges}
+                >
+                  LƯU THAY ĐỔI
+                </Button>
+              )}
+            </div>
+          </form>
+        </div>
+        {/* Modal chọn thuốc — Medicine picker modal */}
+        {showChoose && (
+          <div className="absolute inset-0 flex items-center justify-center z-50">
+            <FormChoseMedicine
+              data={medicineList}
+              selectedMedicines={medicines}
+              onCancel={() => setShowChoose(false)}
+              onConfirm={handleConfirmMedicine}
             />
           </div>
-
-          <div className="flex items-center justify-center gap-50 pt-5 pb-10">
-            <Button
-              type="button"
-              className="bg-[#D21013] w-50 h-10 text-sm font-bold text-white shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]"
-              onClick={handleCancel}
-            >
-              {getCancelButtonText()}
-            </Button>
-
-            {showCreateButton && (
-              <Button
-                type="submit"
-                className="bg-[#14B319] w-50 h-10 text-sm font-bold text-white shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]"
-              >
-                TẠO ĐƠN THUỐC
-              </Button>
-            )}
-
-            {showEditButton && (
-              <Button
-                type="button"
-                className="bg-[#FFA500] w-50 h-10 text-sm font-bold text-white shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]"
-                onClick={handleEdit}
-              >
-                SỬA ĐƠN THUỐC
-              </Button>
-            )}
-
-            {showSaveButton && (
-              <Button
-                type="button"
-                className="bg-[#14B319] w-50 h-10 text-sm font-bold text-white shadow-[3px_3px_4px_0_rgba(0,0,0,0.25)]"
-                onClick={handleSaveChanges}
-              >
-                LƯU THAY ĐỔI
-              </Button>
-            )}
-          </div>
-        </form>
+        )}
       </div>
-
-      {showChoose && (
-        <div className="fixed inset-0 left-100 bg-opacity-50 flex items-center justify-center z-50">
-          <FormChoseMedicine
-            data={medicineList} // ← chỉ gồm thuốc còn hàng
-            selectedMedicines={medicines}
-            onCancel={() => setShowChoose(false)}
-            onConfirm={handleConfirmMedicine}
-          />
-        </div>
-      )}
     </>
   );
 }

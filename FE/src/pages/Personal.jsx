@@ -7,9 +7,12 @@ import Logout from "../assets/svg/LogoutIcon.jsx";
 import Table from "../components/Table/Table.jsx";
 import FormChangePass from "../components/FormChangePass.jsx";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getProfile, getLoginHistory } from "../services/profileService";
+import { logout } from "../services/authService";
 
 export default function Personal() {
+  const navigate = useNavigate();
   const columns = [
     { key: "loginTime", label: "Thời gian", align: "left" },
     // { key: "deviceName", label: "Tên thiết bị", align: "left" },
@@ -45,23 +48,31 @@ export default function Personal() {
       })
       .catch((err) => console.error("Lỗi lấy lịch sử đăng nhập:", err));
   }, []);
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
-    <div className="w-3/4 bg-white absolute top-20 left-105 h-5/6 rounded-2xl shadow-xl">
-      <div className="w-5/6 bg-white absolute left-25 top-5 h-45 rounded-2xl shadow-xl flex items-center justify-between gap-10 p-10">
-        <div className="flex items-center justify-center gap-5">
+    <div
+      style={{ padding: "30px" }}
+      className="relative w-full h-9/10 flex flex-col min-h-0 gap-5"
+    >
+      {/* Card thông tin cá nhân — Profile card */}
+      <div className="bg-white rounded-2xl shadow-xl flex items-center justify-between gap-10 px-10 py-6 flex-shrink-0">
+        <div className="flex items-center gap-5">
           <img src={avatar} alt="Avatar" />
-          <div className="flex flex-col justify-center gap-2">
+          <div className="flex flex-col gap-2">
             <p className="font-bold text-3xl">
               {profile?.fullname ?? "Đang tải..."}
             </p>
-            <div className="flex items-center justify-center gap-3 text-white border border-1 border-black w-42 bg-[#274681] px-2 py-1 rounded-2xl">
+            <div className="flex items-center gap-3 text-white border border-black w-42 bg-[#274681] px-2 py-1 rounded-2xl">
               <MailIcon />
               <p className="text-white font-bold text-sm">
                 {profile?.role ?? "Nhân viên y tế"}
               </p>
             </div>
-            <div className="flex items-center justify-center text-[10px] mr-15">
+            <div className="flex items-center text-[10px]">
               <img src={avatarsmall} alt="Avatar Small" />
               <label>
                 <p className="text-black">
@@ -74,16 +85,14 @@ export default function Personal() {
         </div>
         <div className="flex flex-col gap-5">
           <Button
-            className="w-30 h-8 flex items-center justify-center text-[9px] bg-white border border-1 border-[#E90012] text-[#E90012] font-bold gap-3 hover:bg-[#F5F5F5] transition"
-            onClick={() => {
-              // Logic đăng xuất
-            }}
+            className="w-40 h-10 flex items-center justify-center bg-white border border-[#E90012] text-[#E90012] font-bold gap-3 hover:bg-[#F5F5F5] transition"
+            onClick={handleLogout}
           >
             <Logout />
             Đăng xuất
           </Button>
           <Button
-            className="w-30 h-8 flex items-center justify-center text-[9px] bg-[linear-gradient(90deg,#3AD37E_34.13%,#1E6D41_98.56%)] text-white font-bold gap-0=3 hover:opacity-80 transition"
+            className="w-40 h-10 flex items-center justify-center  bg-[linear-gradient(90deg,#3AD37E_34.13%,#1E6D41_98.56%)] text-white font-bold hover:opacity-80 transition"
             onClick={() => setShowChangePasswordForm(true)}
           >
             <ChangePass />
@@ -92,26 +101,35 @@ export default function Personal() {
         </div>
       </div>
 
-      <div className="w-5/6 bg-white absolute left-25 bottom-20 h-3/5 rounded-2xl shadow-xl">
-        <h1 className="text-black text-center font-bold text-2xl pt-5 pb-1">
+      {/* Card lịch sử đăng nhập — Login history card */}
+      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col">
+        <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3 flex-shrink-0">
           LỊCH SỬ ĐĂNG NHẬP
         </h1>
-        <div className="overflow-y-auto max-h-[400px] p-5">
-          {loginHistory.length === 0 ? (
-            <p className="text-center text-gray-400 text-sm pt-5">
-              Chưa có lịch sử đăng nhập.
-            </p>
-          ) : (
-            <Table columns={columns} data={loginHistory} type="personal" />
-          )}
+
+        <div className="border-t border-gray-100 flex-shrink-0" />
+
+        <div className="flex-1 p-5 min-h-0">
+          <div className="h-full overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAFA] p-4">
+            {loginHistory.length === 0 ? (
+              <p className="text-center text-gray-400 text-sm pt-5">
+                Chưa có lịch sử đăng nhập.
+              </p>
+            ) : (
+              <Table columns={columns} data={loginHistory} type="personal" />
+            )}
+          </div>
         </div>
       </div>
-
-      <FormChangePass
-        isVisible={showChangePasswordForm}
-        onClose={() => setShowChangePasswordForm(false)}
-        showCurrentPassword={true}
-      />
+      <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+        <div className="pointer-events-auto">
+          <FormChangePass
+            isVisible={showChangePasswordForm}
+            onClose={() => setShowChangePasswordForm(false)}
+            showCurrentPassword={true}
+          />
+        </div>
+      </div>
     </div>
   );
 }

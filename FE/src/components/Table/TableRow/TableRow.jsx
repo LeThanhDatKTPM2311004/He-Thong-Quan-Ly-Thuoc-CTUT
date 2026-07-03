@@ -38,7 +38,7 @@ export default function TableRow({
   };
 
   return (
-    <tr className={`border-b border-[#EEEEEE] text-sm ${getRowBackground()}`}>
+    <tr className={`border-b border-[#EEEEEE] ${getRowBackground()}`}>
       {columns.map((col, colIndex) => (
         <td
           key={colIndex}

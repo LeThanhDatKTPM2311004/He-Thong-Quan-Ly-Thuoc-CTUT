@@ -1,12 +1,32 @@
 import backgroundImage from "../assets/images/background.png";
+
+// AuthLayout: chỉ cung cấp nền, children bám trực tiếp lên
+// AuthLayout: background only, children render directly on top — no extra layers
 export default function AuthLayout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative w-full">
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Nền duy nhất, nằm sau tất cả — Single background, behind everything */}
       <img
         src={backgroundImage}
         alt="Background"
-        className="w-full object-cover h-screen absolute top-0 left-0 -z-10"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: -1,
+        }}
       />
+
+      {/* Children bám thẳng lên nền — Children sit directly on background */}
       {children}
     </div>
   );

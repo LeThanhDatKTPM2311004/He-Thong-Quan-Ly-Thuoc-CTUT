@@ -1,10 +1,11 @@
+/* Xóa max-width và padding mặc định của Vite — Remove Vite default constraints */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
 
+/* Giữ lại các class tiện ích còn dùng — Keep utility classes still in use */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -36,7 +37,6 @@
 .card {
   padding: 2em;
 }
-
 .read-the-docs {
   color: #888;
 }

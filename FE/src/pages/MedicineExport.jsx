@@ -89,52 +89,69 @@ export default function MedicineExport() {
       : "Lịch Sử Nhập Xuất";
 
   return (
-    <div className="w-3/4 bg-white absolute top-20 left-105 h-5/6 rounded-2xl shadow-xl">
-      <div className="flex flex-col px-5 pt-1 justify-center text-black text-xs">
-        <div className="cursor-pointer" onClick={() => navigate(-1)}>
+    /* Wrapper co dãn — Responsive wrapper */
+    <div
+      style={{ padding: "30px" }}
+      className="w-full h-9/10 flex flex-col min-h-0"
+    >
+      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col overflow-y-auto">
+        {/* Nút trở về — Back button */}
+        <div
+          className="flex flex-col px-5 pt-3 text-black text-xs cursor-pointer flex-shrink-0"
+          onClick={() => navigate(-1)}
+        >
           <BackIcon />
           <p>Trở về</p>
         </div>
+
+        <h1 className="text-black text-center font-bold text-2xl pt-3 pb-3 flex-shrink-0">
+          TRUY XUẤT
+        </h1>
+
+        <div className="flex-shrink-0 px-8">
+          <FillTime
+            defaultFrom={dateRange.from}
+            defaultTo={dateRange.to}
+            loading={loading}
+            onChange={(range) => {
+              setDateRange(range);
+              fetchTrace(range.from, range.to);
+            }}
+          />
+        </div>
+
+        {error && (
+          <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+        )}
+
+        {loading ? (
+          <p className="text-center text-gray-400 mt-6">Đang tải...</p>
+        ) : (
+          <div className="flex-1 min-h-0 flex flex-col gap-4 px-8 py-4">
+            {/* Form thông tin thuốc — Medicine info form */}
+            <div className="w-2/3 mx-auto">
+              <FormMedicine
+                fields={fields}
+                onChange={(data) => console.log(data)}
+                variant="primary"
+                readOnly={true}
+                initialData={formData}
+              />
+            </div>
+
+            {/* Bảng lịch sử nhập xuất — Import/export history table */}
+            <div className="w-2/3 mx-auto flex flex-col border-2 border-[#264580] rounded overflow-hidden">
+              <div className="w-full h-10 bg-[#264580] flex items-center justify-center text-white font-bold gap-5 flex-shrink-0">
+                <img src={timeIcon} alt="timeIcon" className="w-6 h-6" />
+                <p>{historyTitle}</p>
+              </div>
+              <div className="overflow-y-auto flex-1 max-h-64 p-4">
+                <Table columns={columns} data={historyRows} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3">
-        TRUY XUẤT
-      </h1>
-      <FillTime
-        defaultFrom={dateRange.from}
-        defaultTo={dateRange.to}
-        loading={loading}
-        onChange={(range) => {
-          setDateRange(range);
-          fetchTrace(range.from, range.to);
-        }}
-      />
-      {error && (
-        <p className="text-red-500 text-sm text-center mt-2">{error}</p>
-      )}
-      {loading ? (
-        <p className="text-center text-gray-400 mt-6">Đang tải...</p>
-      ) : (
-        <>
-          <div className="w-2/3 mx-auto">
-            <FormMedicine
-              fields={fields}
-              onChange={(data) => console.log(data)}
-              variant="primary"
-              readOnly={true}
-              initialData={formData}
-            />
-          </div>
-          <div className="w-2/3 h-2/5 m-auto flex flex-col items-center justify-center gap-5 border border-2 border-[#264580]">
-            <div className="w-full h-10 bg-[#264580] flex items-center justify-center text-white font-bold gap-5">
-              <img src={timeIcon} alt="timeIcon" className="w-6 h-6" />
-              <p>{historyTitle}</p>
-            </div>
-            <div className="overflow-y-auto max-h-65 h-65 w-5/6">
-              <Table columns={columns} data={historyRows} />
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }

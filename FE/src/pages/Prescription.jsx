@@ -147,66 +147,79 @@ export default function Prescription() {
 
   return (
     <>
-      <div className="w-3/4 bg-white absolute top-20 left-105 h-5/6 rounded-2xl shadow-xl">
-        <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3">
-          DANH SÁCH ĐƠN THUỐC
-        </h1>
-        <Button
-          className="bg-[#CA20A5] h-6 text-xs flex justify-self-end items-center text-white font-bold mr-15"
-          onClick={() => navigate("/prescription/create")}
-        >
-          <img src={add} alt="Add Icon" className="w-3 h-3 mr-1" />
-          KÊ ĐƠN THUỐC
-        </Button>
-
-        {error && (
-          <p className="text-red-500 text-sm text-center mt-2">{error}</p>
-        )}
-
-        {loading ? (
-          <p className="text-center text-gray-400 mt-10">Đang tải...</p>
-        ) : (
-          <div className="max-h-[650px] p-5">
-            <Table
-              columns={columns}
-              data={data}
-              type="prescription"
-              onView={handleView}
-              onDelete={handleDelete}
-              onDispense={handleDispense}
-              onReturn={handleReturn}
-            />
-          </div>
-        )}
-
-        {!loading && pagination.totalPages > 1 && (
-          <div className="flex justify-center items-center gap-3 pb-4">
-            <button
-              disabled={pagination.page === 0}
-              onClick={() =>
-                fetchPrescriptions(pagination.page - 1, keyword ?? "")
-              }
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
+      {/* Wrapper co dãn — Responsive wrapper */}
+      <div
+        style={{ padding: "30px" }}
+        className="relative w-full h-9/10 flex flex-col min-h-0"
+      >
+        <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col">
+          {/* Header: title + nút kê đơn — Title + create button */}
+          <div className="relative flex items-center justify-end px-8 py-5 flex-shrink-0">
+            <h1 className="absolute left-1/2 -translate-x-1/2 text-black font-bold text-2xl tracking-wide">
+              DANH SÁCH ĐƠN THUỐC
+            </h1>
+            <Button
+              className="bg-[#CA20A5] h-10 flex items-center text-white font-bold px-4 rounded-lg"
+              onClick={() => navigate("/prescription/create")}
             >
-              &laquo; Trước
-            </button>
-            <span className="text-sm text-gray-600">
-              Trang {pagination.page + 1} / {pagination.totalPages}
-            </span>
-            <button
-              disabled={pagination.page + 1 >= pagination.totalPages}
-              onClick={() =>
-                fetchPrescriptions(pagination.page + 1, keyword ?? "")
-              }
-              className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
-            >
-              Tiếp &raquo;
-            </button>
+              <img src={add} alt="Add Icon" className="w-3 h-3 mr-1" />
+              KÊ ĐƠN THUỐC
+            </Button>
           </div>
-        )}
+          <div className="border-t border-gray-100 flex-shrink-0" />
+
+          {error && (
+            <p className="text-red-500 text-sm text-center px-8 pt-2">
+              {error}
+            </p>
+          )}
+
+          {/* Bảng dữ liệu cuộn — Scrollable table */}
+          {loading ? (
+            <p className="text-center text-gray-400 mt-10">Đang tải...</p>
+          ) : (
+            <div className="flex-1 min-h-0 overflow-y-auto px-8 py-4">
+              <Table
+                columns={columns}
+                data={data}
+                type="prescription"
+                onView={handleView}
+                onDelete={handleDelete}
+                onDispense={handleDispense}
+                onReturn={handleReturn}
+              />
+            </div>
+          )}
+
+          {/* Phân trang ghim đáy — Pinned pagination */}
+          {!loading && pagination.totalPages > 1 && (
+            <div className="flex justify-center items-center gap-3 py-10 flex-shrink-0 border-t border-gray-100">
+              <button
+                disabled={pagination.page === 0}
+                onClick={() =>
+                  fetchPrescriptions(pagination.page - 1, keyword ?? "")
+                }
+                className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
+              >
+                &laquo; Trước
+              </button>
+              <span className="text-sm text-gray-600">
+                Trang {pagination.page + 1} / {pagination.totalPages}
+              </span>
+              <button
+                disabled={pagination.page + 1 >= pagination.totalPages}
+                onClick={() =>
+                  fetchPrescriptions(pagination.page + 1, keyword ?? "")
+                }
+                className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40 text-sm"
+              >
+                Tiếp &raquo;
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Alert xóa đơn thuốc */}
       <Alert
         show={showDeleteAlert}
         onClose={() => setShowDeleteAlert(false)}
@@ -219,7 +232,6 @@ export default function Prescription() {
         Enter="Tiến hành xóa"
       />
 
-      {/* Alert cảnh báo thuốc không đủ số lượng */}
       <Alert
         show={showInsufficientAlert}
         onClose={() => setShowInsufficientAlert(false)}

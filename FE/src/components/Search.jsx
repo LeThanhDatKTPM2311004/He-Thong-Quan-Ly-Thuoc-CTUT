@@ -5,7 +5,7 @@ export default function Search({
   hideHeader = true,
   title = "Quản Lí Tài Khoản",
   onSearch,
-  keyword = "", // nhận từ ngoài, bỏ useState nội bộ
+  keyword = "",
 }) {
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -22,12 +22,12 @@ export default function Search({
     <div className="w-4/5 h-12 pl-5 absolute top-0 left-1/5 overflow-hidden flex items-center bg-[#264580]">
       <Title
         wrapperClass="text-white"
-        subtitleClass="text-[7px] italic"
+        subtitleClass="text-xs italic"
         title={title}
         subtitle="Phòng Y Tế - Trường Đại học Kỹ Thuật Công Nghệ Cần Thơ"
       />
       {hideHeader && (
-        <div className="w-1/3 flex items-center h-6 bg-white rounded-xl ml-50">
+        <div className="w-1/3 flex items-center h-7 bg-white rounded-xl ml-50 gap-4">
           <VectorSearch />
           <input
             type="text"

@@ -15,13 +15,18 @@ export default function CreateMedicine() {
     { name: "tenThuoc", label: "Tên thuốc:", width: "full" },
     { name: "soLuong", label: "Số lượng:", width: "half", type: "number" },
     { name: "donViTinh", label: "Đơn vị tính:", width: "half" },
-    { name: "hanSuDung", label: "Hạn sử dụng:", width: "full", type: "date" },
+    {
+      name: "hanSuDung",
+      label: "Hạn sử dụng:",
+      width: "full",
+      type: "date",
+      min: new Date(Date.now() + 86400000).toISOString().split("T")[0], // ← ngày mai trở đi
+    },
   ];
 
   const handleSubmit = async () => {
     setError("");
 
-    // Validate
     if (!formData.tenThuoc?.trim()) {
       setError("Vui lòng nhập tên thuốc.");
       return;
@@ -38,6 +43,13 @@ export default function CreateMedicine() {
       setError("Vui lòng nhập hạn sử dụng.");
       return;
     }
+    // Kiểm tra hạn sử dụng không được ở quá khứ — Expiry date must be in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(formData.hanSuDung) <= today) {
+      setError("Hạn sử dụng phải sau ngày hôm nay.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -45,7 +57,7 @@ export default function CreateMedicine() {
         name: formData.tenThuoc.trim(),
         unit: formData.donViTinh.trim(),
         quantity: Number(formData.soLuong),
-        expiryDate: formData.hanSuDung, // "YYYY-MM-DD"
+        expiryDate: formData.hanSuDung,
       });
       navigate("/medicine");
     } catch (err) {
@@ -56,45 +68,45 @@ export default function CreateMedicine() {
   };
 
   return (
-    <div className="w-2/3 bg-white absolute top-20 left-125 h-1/2 rounded-2xl shadow-xl flex flex-col items-center justify-center gap-10">
-      <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3 w-full">
-        THÊM THUỐC MỚI
-      </h1>
-      <div className="w-2/3 mx-auto">
-        <FormMedicine
-          fields={fields}
-          onChange={(data) => setFormData(data)}
-          variant="primary"
-          readOnly={false}
-        />
-      </div>
-
-      {error && (
-        <p className="text-red-500 text-sm text-center -mt-5">{error}</p>
-      )}
-
-      <div className="flex items-center justify-center gap-16 font-bold text-white">
-        <Button
-          className="bg-[#951010] hover:bg-red-600 w-30 h-10"
-          onClick={() => navigate("/medicine")}
-          disabled={loading}
-        >
-          HỦY BỎ
-        </Button>
-        <Button
-          className="bg-[#268037] hover:bg-green-600 w-30 h-10 flex items-center justify-center gap-2"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Đang lưu...
-            </>
-          ) : (
-            "HOÀN TẤT"
-          )}
-        </Button>
+    <div className="w-full h-full flex items-center justify-center p-8">
+      <div className="w-[70%] min-h-[55%] bg-white rounded-2xl shadow-xl flex flex-col items-center justify-center gap-10">
+        <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3 w-full">
+          THÊM THUỐC MỚI
+        </h1>
+        <div className="w-2/3 mx-auto">
+          <FormMedicine
+            fields={fields}
+            onChange={(data) => setFormData(data)}
+            variant="primary"
+            readOnly={false}
+          />
+        </div>
+        {error && (
+          <p className="text-red-500 text-sm text-center -mt-5">{error}</p>
+        )}
+        <div className="flex items-center justify-center gap-16 font-bold text-white">
+          <Button
+            className="bg-[#951010] hover:bg-red-600 w-40 h-10"
+            onClick={() => navigate("/medicine")}
+            disabled={loading}
+          >
+            HỦY BỎ
+          </Button>
+          <Button
+            className="bg-[#268037] hover:bg-green-600 w-40 h-10 flex items-center justify-center gap-2"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Đang lưu...
+              </>
+            ) : (
+              "HOÀN TẤT"
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

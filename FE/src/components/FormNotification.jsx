@@ -11,7 +11,12 @@ export default function FormNotification({
   const navigate = useNavigate();
 
   const handleViewDetail = () => {
-    navigate("/medicine", { state: { searchBatch: batchId } });
+    navigate("/medicine", {
+      state: {
+        searchBatch: batchId,
+        _t: Date.now(), // ← thêm dòng này
+      },
+    });
   };
   const typeConfig = {
     success: {
