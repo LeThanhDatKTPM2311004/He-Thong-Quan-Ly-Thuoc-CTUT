@@ -17,6 +17,7 @@ export default function TableAction({
   onDelete,
   onDispense,
   onReturn,
+  onPrint,
 }) {
   const handleAccess = () => {
     if (onAccess) {
@@ -127,6 +128,14 @@ export default function TableAction({
       onReturn(rowData);
     } else {
       console.log("Hoàn thuốc:", rowData);
+    }
+  };
+
+  const handlePrint = () => {
+    if (onPrint) {
+      onPrint(rowData);
+    } else {
+      console.log("In báo cáo:", rowData);
     }
   };
 
@@ -247,20 +256,19 @@ export default function TableAction({
           >
             Xem chi tiết
           </Button>
-
           <Button
             onClick={handleDispense}
             className="bg-[#264580] h-8 w-30 text-sm flex justify-center items-center text-white font-medium hover:opacity-80 transition"
           >
             Cấp thuốc
           </Button>
-
           <Button
             onClick={handleDelete}
-            className="bg-[#8E1010] h-8 w-15 text-sm flex justify-center items-center text-white font-medium hover:opacity-80 transition"
+            className="bg-[#8E1010] h-8 w-19 text-sm flex justify-center items-center text-white font-medium hover:opacity-80 transition"
           >
             Xóa
           </Button>
+          ;
         </div>
       );
     }
@@ -273,6 +281,12 @@ export default function TableAction({
             className="bg-[#3D8E10] h-8 w-30 text-sm flex justify-center items-center text-white font-medium hover:opacity-80 transition"
           >
             Xem chi tiết
+          </Button>
+          <Button
+            className="bg-[#5E5E5E] h-8 flex items-center text-white font-bold px-4 rounded-lg text-sm gap-1"
+            onClick={handlePrint}
+          >
+            In đơn
           </Button>
         </div>
       );
@@ -292,6 +306,12 @@ export default function TableAction({
             className="bg-[#C0D204] h-8 w-30 text-sm flex justify-center items-center text-white font-medium hover:opacity-80 transition"
           >
             Hoàn thuốc
+          </Button>
+          <Button
+            className="bg-[#5E5E5E] h-8 flex items-center text-white font-bold px-4 rounded-lg text-sm gap-1"
+            onClick={handlePrint}
+          >
+            In đơn
           </Button>
         </div>
       );

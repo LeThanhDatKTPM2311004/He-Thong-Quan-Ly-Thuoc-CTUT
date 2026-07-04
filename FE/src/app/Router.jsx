@@ -18,6 +18,7 @@ import Student from "../pages/Student.jsx";
 import Notification from "../pages/Notification.jsx";
 import Statistics from "../pages/Statistics.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
+import PrescriptionReport from "../pages/PrescriptionReport.jsx";
 
 export default function AppRouter() {
   return (
@@ -170,6 +171,16 @@ export default function AppRouter() {
             element={
               <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
                 <ViewPrescription />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+        <Route element={<MainLayout hideHeader={false} title="In Đơn Thuốc" />}>
+          <Route
+            path="/prescription/report"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                <PrescriptionReport />
               </ProtectedRoute>
             }
           />

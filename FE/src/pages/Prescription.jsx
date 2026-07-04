@@ -145,6 +145,10 @@ export default function Prescription() {
     }
   };
 
+  const handlePrint = () => {
+    navigate("/prescription/report");
+  };
+
   return (
     <>
       {/* Wrapper co dãn — Responsive wrapper */}
@@ -187,6 +191,7 @@ export default function Prescription() {
                 onDelete={handleDelete}
                 onDispense={handleDispense}
                 onReturn={handleReturn}
+                onPrint={handlePrint}
               />
             </div>
           )}

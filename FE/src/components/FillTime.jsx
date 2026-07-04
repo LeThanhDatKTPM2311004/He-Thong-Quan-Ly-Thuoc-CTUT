@@ -20,7 +20,7 @@ export default function FillTime({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center justify-center gap-6 py-5 font-bold text-sm"
+      className="flex items-center justify-center gap-6 py-5 font-bold text-xl"
     >
       <label htmlFor="fortime" className="cursor-pointer">
         {label}{" "}
@@ -45,7 +45,7 @@ export default function FillTime({
       <Button
         type="submit"
         disabled={loading}
-        className="bg-[#39B90F] text-xs text-white w-40 h-8"
+        className="bg-[#39B90F] text-xl text-white w-60 h-10 flex items-center justify-center gap-2 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200"
       >
         {loading ? "Đang truy xuất..." : button}
       </Button>

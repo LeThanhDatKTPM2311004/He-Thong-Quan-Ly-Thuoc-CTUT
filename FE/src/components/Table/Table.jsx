@@ -21,6 +21,7 @@ export default function Table({
   onDelete,
   onDispense,
   onReturn,
+  onPrint,
 }) {
   return (
     <table className="w-full border-collapse">
@@ -52,6 +53,7 @@ export default function Table({
             onDelete={onDelete}
             onDispense={onDispense}
             onReturn={onReturn}
+            onPrint={onPrint}
           />
         ))}
       </tbody>

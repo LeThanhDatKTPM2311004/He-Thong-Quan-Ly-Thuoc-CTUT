@@ -11,12 +11,14 @@ import { useNavigate } from "react-router-dom";
 import { getProfile, getLoginHistory } from "../services/profileService";
 import { logout } from "../services/authService";
 
+const RECENT_LIMIT = 5;
+
 export default function Personal() {
   const navigate = useNavigate();
   const columns = [
-    { key: "loginTime", label: "Thời gian", align: "left" },
+    { key: "loginTime", label: "Thời gian", align: "center" },
     // { key: "deviceName", label: "Tên thiết bị", align: "left" },
-    { key: "status", label: "Trạng thái", align: "left" },
+    { key: "status", label: "Trạng thái", align: "center" },
   ];
 
   const [profile, setProfile] = useState(null);
@@ -48,10 +50,14 @@ export default function Personal() {
       })
       .catch((err) => console.error("Lỗi lấy lịch sử đăng nhập:", err));
   }, []);
+
   const handleLogout = async () => {
     await logout();
     navigate("/login");
   };
+
+  // Chỉ hiển thị 5 phiên đăng nhập gần nhất
+  const recentHistory = loginHistory.slice(0, RECENT_LIMIT);
 
   return (
     <div
@@ -59,21 +65,21 @@ export default function Personal() {
       className="relative w-full h-9/10 flex flex-col min-h-0 gap-5"
     >
       {/* Card thông tin cá nhân — Profile card */}
-      <div className="bg-white rounded-2xl shadow-xl flex items-center justify-between gap-10 px-10 py-6 flex-shrink-0">
+      <div className="bg-white rounded-2xl shadow-xl flex items-center justify-between gap-10 px-10 py-6 flex-shrink-0 w-2/3 mx-auto">
         <div className="flex items-center gap-5">
           <img src={avatar} alt="Avatar" />
           <div className="flex flex-col gap-2">
             <p className="font-bold text-3xl">
               {profile?.fullname ?? "Đang tải..."}
             </p>
-            <div className="flex items-center gap-3 text-white border border-black w-42 bg-[#274681] px-2 py-1 rounded-2xl">
+            <div className="flex items-center justify-center gap-5 text-white border border-black w-42 bg-[#274681] px-2 py-1 rounded-2xl">
               <MailIcon />
-              <p className="text-white font-bold text-sm">
+              <p className="text-white font-bold text-sm h-10 flex items-center">
                 {profile?.role ?? "Nhân viên y tế"}
               </p>
             </div>
-            <div className="flex items-center text-[10px]">
-              <img src={avatarsmall} alt="Avatar Small" />
+            <div className="flex items-center font-medium gap-3 text-sm">
+              <img src={avatarsmall} alt="Avatar Small" className="h-10" />
               <label>
                 <p className="text-black">
                   Tên đăng nhập: {profile?.username ?? "—"}
@@ -102,21 +108,21 @@ export default function Personal() {
       </div>
 
       {/* Card lịch sử đăng nhập — Login history card */}
-      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col">
+      <div className="bg-white flex-1 min-h-0 rounded-2xl shadow-xl flex flex-col w-2/3 overflow-y-auto mx-auto">
         <h1 className="text-black text-center font-bold text-2xl pt-5 pb-3 flex-shrink-0">
           LỊCH SỬ ĐĂNG NHẬP
         </h1>
 
         <div className="border-t border-gray-100 flex-shrink-0" />
 
-        <div className="flex-1 p-5 min-h-0">
+        <div className="flex-1 p-5 min-h-0 max-w-6xl mx-auto">
           <div className="h-full overflow-y-auto rounded-xl border border-gray-200 bg-[#FAFAFA] p-4">
             {loginHistory.length === 0 ? (
               <p className="text-center text-gray-400 text-sm pt-5">
                 Chưa có lịch sử đăng nhập.
               </p>
             ) : (
-              <Table columns={columns} data={loginHistory} type="personal" />
+              <Table columns={columns} data={recentHistory} type="personal" />
             )}
           </div>
         </div>

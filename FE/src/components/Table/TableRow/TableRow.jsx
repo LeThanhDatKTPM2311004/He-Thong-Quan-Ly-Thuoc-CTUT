@@ -22,6 +22,7 @@ export default function TableRow({
   onDelete,
   onDispense,
   onReturn,
+  onPrint,
 }) {
   const isEven = index % 2 === 0;
 
@@ -90,6 +91,7 @@ export default function TableRow({
               onDelete={onDelete}
               onDispense={onDispense}
               onReturn={onReturn}
+              onPrint={onPrint}
             />
           ) : (
             <span>{row[col.key]}</span>

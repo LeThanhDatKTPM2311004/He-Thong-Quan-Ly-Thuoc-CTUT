@@ -94,11 +94,6 @@ export default function SideBar() {
   const visibleItems = MENU_ITEMS.filter((item) => item.roles.includes(role));
 
   return (
-    /*
-      Bỏ items-center justify-center — items bám trái tự nhiên
-      Remove centering — items align to left naturally
-      px-3 tạo khoảng thở nhỏ hai bên — px-3 gives slight side breathing room
-    */
     <div className="w-full flex flex-col gap-3 mt-15 text-[#9197B3] font-medium px-3">
       {visibleItems.map((item, index) => (
         <MenuItem

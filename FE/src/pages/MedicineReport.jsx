@@ -22,7 +22,7 @@ export default function MedicineReport() {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState(getDefaultRange);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
-  const [hasFiltered, setHasFiltered] = useState(false); // ← chỉ hiện sau khi người dùng chọn filter
+  const [hasFiltered, setHasFiltered] = useState(false); // ← chỉ hiện preview sau khi người dùng chọn filter
   const [loading, setLoading] = useState({
     pdf: false,
     excel: false,
@@ -102,7 +102,7 @@ export default function MedicineReport() {
           subtitle="DANH SÁCH THUỐC"
           wrapperClass="text-center mb-5 flex-shrink-0"
           titleClass="text-3xl font-bold"
-          subtitleClass="text-xs"
+          subtitleClass="text-base-content"
         />
 
         <div className="flex-shrink-0 px-8">
@@ -121,45 +121,59 @@ export default function MedicineReport() {
           <p className="text-red-500 text-sm text-center mt-2">{error}</p>
         )}
 
-        {/* Chỉ hiện sau khi filter — Show only after filter applied */}
-        {hasFiltered && (
-          <div className="flex flex-col items-center gap-4 px-8 py-4 flex-1 min-h-0">
-            {/* Preview PDF — PDF preview area */}
-            <div className="w-full max-w-5xl">
-              {loading.preview ? (
-                <div className="w-full flex items-center justify-center text-gray-400 text-sm">
-                  Đang tải xem trước...
-                </div>
-              ) : pdfPreviewUrl ? (
-                <iframe
-                  src={pdfPreviewUrl}
-                  className="w-full h-110 rounded border border-gray-200"
-                  title="PDF Preview"
-                />
-              ) : null}
+        {/* Khung hiển thị: luôn hiện, nội dung tùy trạng thái filter */}
+        <div className="flex flex-col items-center gap-4 px-8 py-4 flex-1 min-h-0">
+          {!hasFiltered ? (
+            // Chưa chọn mốc thời gian — nhắc người dùng thao tác
+            <div className="w-full max-w-7xl flex-1 min-h-0 rounded border border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 text-2xl gap-2">
+              <p>Chưa có dữ liệu, vui lòng chọn mốc thời gian</p>
+              <p className="text-2xl text-gray-300">
+                để tiến hành truy xuất báo cáo
+              </p>
             </div>
+          ) : (
+            <>
+              {/* Preview PDF — PDF preview area */}
+              <div className="w-full max-w-7xl flex-1 min-h-0">
+                {loading.preview ? (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm border border-gray-200 rounded">
+                    Đang tải xem trước...
+                  </div>
+                ) : pdfPreviewUrl ? (
+                  <iframe
+                    src={pdfPreviewUrl}
+                    className="w-full h-full rounded border border-gray-200"
+                    title="PDF Preview"
+                  />
+                ) : (
+                  <div className="w-full h-full rounded border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-sm">
+                    Không có dữ liệu xem trước
+                  </div>
+                )}
+              </div>
 
-            {/* Nút xuất file — Export buttons */}
-            <div className="flex items-center justify-center gap-16 pb-6">
-              <Button
-                onClick={handleExportExcel}
-                disabled={loading.excel}
-                className="w-30 h-10 bg-gradient-to-r from-white to-[#1E6D41] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25)] flex items-center justify-center text-white font-bold gap-2"
-              >
-                <img src={excelIcon} alt="" />
-                {loading.excel ? "..." : "EXCEL"}
-              </Button>
-              <Button
-                onClick={handleExportPdf}
-                disabled={loading.pdf}
-                className="w-30 h-10 bg-gradient-to-r from-white to-[#9E0C1B] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25)] flex items-center justify-center text-white font-bold gap-2"
-              >
-                <img src={pdfIcon} alt="" />
-                {loading.pdf ? "..." : "PDF"}
-              </Button>
-            </div>
-          </div>
-        )}
+              {/* Nút xuất file — Export buttons */}
+              <div className="flex items-center justify-center gap-16 pb-6 flex-shrink-0">
+                <Button
+                  onClick={handleExportExcel}
+                  disabled={loading.excel}
+                  className="w-30 h-10 bg-gradient-to-r from-white to-[#1E6D41] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25)] flex items-center justify-center text-white font-bold gap-2"
+                >
+                  <img src={excelIcon} alt="" />
+                  {loading.excel ? "..." : "EXCEL"}
+                </Button>
+                <Button
+                  onClick={handleExportPdf}
+                  disabled={loading.pdf}
+                  className="w-30 h-10 bg-gradient-to-r from-white to-[#9E0C1B] shadow-[inset_0_1px_0.75px_0_rgba(255,255,255,0.07),_0_4px_4px_0_rgba(0,0,0,0.25)] flex items-center justify-center text-white font-bold gap-2"
+                >
+                  <img src={pdfIcon} alt="" />
+                  {loading.pdf ? "..." : "PDF"}
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
