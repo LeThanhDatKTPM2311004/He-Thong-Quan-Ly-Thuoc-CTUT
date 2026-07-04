@@ -1,4 +1,5 @@
 import Button from "../../Button.jsx";
+import printicon from "../../../assets/images/printicon.png";
 
 export default function TableAction({
   rowData,
@@ -264,11 +265,10 @@ export default function TableAction({
           </Button>
           <Button
             onClick={handleDelete}
-            className="bg-[#8E1010] h-8 w-19 text-sm flex justify-center items-center text-white font-medium hover:opacity-80 transition"
+            className="bg-[#8E1010] h-8 w-24 text-sm flex justify-center items-center text-white font-medium hover:opacity-80 transition"
           >
             Xóa
           </Button>
-          ;
         </div>
       );
     }
@@ -286,6 +286,7 @@ export default function TableAction({
             className="bg-[#5E5E5E] h-8 flex items-center text-white font-bold px-4 rounded-lg text-sm gap-1"
             onClick={handlePrint}
           >
+            <img src={printicon} alt="Print Icon" className="w-4 h-4" />
             In đơn
           </Button>
         </div>
@@ -311,6 +312,7 @@ export default function TableAction({
             className="bg-[#5E5E5E] h-8 flex items-center text-white font-bold px-4 rounded-lg text-sm gap-1"
             onClick={handlePrint}
           >
+            <img src={printicon} alt="Print Icon" className="w-4 h-4" />
             In đơn
           </Button>
         </div>
