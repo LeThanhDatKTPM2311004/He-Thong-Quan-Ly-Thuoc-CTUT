@@ -99,6 +99,7 @@ public class PrescriptionService {
                         detail.setMedicine(medicine);
                         detail.setQuantity(item.quantity());
                         detail.setUnit(medicine.getUnit());
+                        detail.setNote(item.note());
                         return detail;
                 }).toList();
 
@@ -196,7 +197,7 @@ public class PrescriptionService {
                         MedicineBatch lo = detail.getBatch();
                         if (lo != null) {
                                 lo.setRemainingQuantity(lo.getRemainingQuantity() + detail.getQuantity());
-                                batchRepository.save(lo);                
+                                batchRepository.save(lo);
                                 historyRepository.deleteByBatchAndType(lo, MedicineHistory.HistoryType.EXPORT);
                         }
                 }
@@ -242,6 +243,7 @@ public class PrescriptionService {
                         detail.setMedicine(medicine);
                         detail.setQuantity(item.quantity());
                         detail.setUnit(medicine.getUnit());
+                        detail.setNote(item.note());
 
                         newDetails.add(detail);
                 }
@@ -322,7 +324,8 @@ public class PrescriptionService {
                                                 d.getMedicine().getId(),
                                                 d.getMedicine().getName(),
                                                 d.getUnit(),
-                                                d.getQuantity()))
+                                                d.getQuantity(),
+                                                d.getNote()))
                                 .toList();
 
                 return new PrescriptionResponse(

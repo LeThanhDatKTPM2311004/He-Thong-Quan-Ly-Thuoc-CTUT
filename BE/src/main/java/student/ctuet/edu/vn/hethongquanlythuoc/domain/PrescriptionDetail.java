@@ -44,6 +44,9 @@ public class PrescriptionDetail {
     @Column(name = "don_vi_tinh")
     private String unit;
 
+    @Column(name = "ghi_chu", length = 255)
+    private String note;
+
     @Column(name = "thoi_diem_tao", nullable = false, updatable = false)
     private Instant createdAt;
 
